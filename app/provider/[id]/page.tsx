@@ -4,6 +4,7 @@ import ContactIcons from "@/components/contact-icons";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { cookies } from "next/headers"; // Importamos para checar o admin
 
 export default async function ProviderPage({
   params,
@@ -11,14 +12,16 @@ export default async function ProviderPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  
+  // 1. Verificação de Admin para mostrar o botão de edição
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get("admin_token")?.value === process.env.ADMIN_SECRET;
 
-  // Busca o serviço pelo ID numérico
   const service = await prisma.service.findUnique({
     where: { id: parseInt(id) },
   }); 
 
-  // Se não existir ou não estiver aprovado, mostra 404
-  if (!service || (!service.approved && !service.suspended)) {
+  if (!service || (!service.approved && !service.suspended && !isAdmin)) {
     return notFound();
   }
 
@@ -27,9 +30,20 @@ export default async function ProviderPage({
       <Header />
       
       <main className="mx-auto max-w-4xl p-6 py-12">
-        <Link href="/" className="text-sm text-blue-600 hover:underline mb-6 inline-block">
-          &larr; Voltar para a busca
-        </Link>
+        <div className="flex justify-between items-center mb-6">
+          <Link href="/" className="text-sm text-blue-600 hover:underline inline-block">
+            &larr; Voltar para a busca
+          </Link>
+
+          {/* 2. Botão que só aparece para você */}
+          {isAdmin && (
+            <Link href={`/admin/services/${id}/edit`}>
+              <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">
+                ⚙️ Editar como Admin
+              </Button>
+            </Link>
+          )}
+        </div>
 
         <div className="bg-white rounded-2xl shadow-sm border p-8 flex flex-col md:flex-row gap-8">
           {/* Lado Esquerdo: Imagem */}
@@ -48,9 +62,16 @@ export default async function ProviderPage({
           {/* Lado Direito: Informações */}
           <div className="flex-1 space-y-6">
             <div>
-              <span className="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
-                {service.category}
-              </span>
+              <div className="flex items-center gap-2 mb-2">
+                <span className="inline-block px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider">
+                  {service.category}
+                </span>
+                {isAdmin && !service.approved && (
+                  <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded font-bold">
+                    PENDENTE
+                  </span>
+                )}
+              </div>
               <h1 className="text-4xl font-bold text-slate-900">{service.name}</h1>
             </div>
 
@@ -78,7 +99,16 @@ export default async function ProviderPage({
 
             <div className="pt-4 flex gap-3">
               {service.whatsapp && (
-                <a href={service.whatsapp} target="_blank" rel="noreferrer" className="flex-1">
+                <a 
+                  href={
+                    service.whatsapp.startsWith('http') 
+                      ? service.whatsapp 
+                      : `https://wa.me/${service.whatsapp.replace(/\D/g, '')}`
+                  } 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="flex-1"
+                >
                   <Button className="w-full bg-green-600 hover:bg-green-700">
                     Chamar no WhatsApp
                   </Button>

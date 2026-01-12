@@ -8,18 +8,19 @@ datasource db {
 }
 
 model Service {
-  id        Int      @id @default(autoincrement())
-  name      String
-  category  String
-  image     String?  // Armazenará o Base64 ou URL
-  whatsapp  String?
-  instagram String?
-  tiktok    String?
-  email     String?
-  site      String?
-  approved  Boolean  @default(false)
-  suspended Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String
+  description String?  @db.Text
+  image       String?  // Armazenará o Base64 ou URL
+  whatsapp    String?
+  instagram   String?
+  tiktok      String?
+  email       String?
+  site        String?
+  approved    Boolean  @default(false)
+  suspended   Boolean  @default(false)
+  createdAt   DateTime @default(now())
 }
 
 // Tabelas para Suporte ao NextAuth (Login Seguro e Google)
