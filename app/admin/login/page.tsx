@@ -10,14 +10,13 @@ export default function AdminLogin() {
   const [pass, setPass] = React.useState("");
   const router = useRouter();
 
-  function submit(e: React.FormEvent) {
+  async function submit(e: React.FormEvent) {
     e.preventDefault();
-    // simple demo auth — in production replace with real auth
+    // Em produção, use uma rota de API para verificar e setar o cookie
     if (user === "admin" && pass === "password") {
-      sessionStorage.setItem("admin:auth", "1");
+      // Exemplo simplificado: o ideal é chamar uma API que define o cookie HttpOnly
+      document.cookie = `admin_token=${pass}; path=/; samesite=strict`;
       router.push("/admin/dashboard");
-    } else {
-      alert("Invalid credentials: use admin / password");
     }
   }
 

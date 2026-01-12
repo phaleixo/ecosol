@@ -1,17 +1,17 @@
 generator client {
   provider = "prisma-client-js"
+  engineType = "binary"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = "file:./dev.db"
+  provider  = "postgresql"
 }
 
 model Service {
   id        Int      @id @default(autoincrement())
   name      String
   category  String
-  image     String?
+  image     String?  // Armazenará o Base64 ou URL
   whatsapp  String?
   instagram String?
   tiktok    String?
@@ -20,4 +20,15 @@ model Service {
   approved  Boolean  @default(false)
   suspended Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+// Tabelas para Suporte ao NextAuth (Login Seguro e Google)
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?   // Para login local
+  role          String    @default("USER")
 }
