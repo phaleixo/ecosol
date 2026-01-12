@@ -2,50 +2,51 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-const CATEGORIES = [
-  "All Services",
-  "Construction",
-  "Beauty",
-  "Tech",
-  "Legal",
-  "Marketing",
-  "Wellness",
-];
+// Definimos a estrutura exata que o componente espera
+interface CategoryData {
+  name: string;
+  count: number;
+}
 
-export default function CategoryFilter() {
+interface CategoryFilterProps {
+  categories: CategoryData[];
+}
+
+export default function CategoryFilter({ categories }: CategoryFilterProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  
-  // Pega a categoria ativa da URL ou define como padrão "All Services"
-  const active = searchParams.get("cat") || "All Services";
+  const active = searchParams.get("category") || "Todas";
 
-  function handleFilter(category: string) {
-    const params = new URLSearchParams(searchParams);
-    
-    if (category === "All Services") {
-      params.delete("cat"); // Remove o filtro se escolher 'Todos'
+  function handleFilter(categoryName: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    if (categoryName === "Todas") {
+      params.delete("category");
     } else {
-      params.set("cat", category); // Adiciona a categoria na URL
+      params.set("category", categoryName);
     }
-
-    // Navegação suave do Next.js sem recarregar a página
-    router.push(`/?${params.toString()}`);
+    params.delete("page");
+    router.push(`/?${params.toString()}`, { scroll: false });
   }
 
   return (
-    <div className="flex gap-2 overflow-x-auto py-1 no-scrollbar">
-      {CATEGORIES.map((c) => (
+    <div className="flex gap-2 overflow-x-auto py-2 no-scrollbar border-b mb-6">
+      {categories.map((c) => (
         <button
-          key={c}
-          onClick={() => handleFilter(c)}
+          key={c.name}
+          onClick={() => handleFilter(c.name)}
           className={
-            "whitespace-nowrap rounded-full px-4 py-1 text-sm transition-colors " +
-            (active === c
-              ? "bg-blue-600 text-white shadow-md"
-              : "bg-slate-100 text-slate-700 hover:bg-slate-200")
+            "whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium transition-all flex items-center gap-2 " +
+            (active === c.name
+              ? "bg-blue-600 text-white shadow-md scale-105"
+              : "bg-white text-slate-700 border hover:bg-slate-100")
           }
         >
-          {c}
+          <span>{c.name}</span>
+          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${
+            active === c.name ? "bg-blue-500 text-white" : "bg-slate-100 text-slate-500"
+          }`}>
+            {c.count}
+          </span>
         </button>
       ))}
     </div>

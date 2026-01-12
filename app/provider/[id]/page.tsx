@@ -4,7 +4,7 @@ import ContactIcons from "@/components/contact-icons";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { cookies } from "next/headers"; // Importamos para checar o admin
+import { cookies } from "next/headers";
 
 export default async function ProviderPage({
   params,
@@ -13,7 +13,7 @@ export default async function ProviderPage({
 }) {
   const { id } = await params;
   
-  // 1. Verificação de Admin para mostrar o botão de edição
+  // Verificação de Admin para mostrar o botão de edição
   const cookieStore = await cookies();
   const isAdmin = cookieStore.get("admin_token")?.value === process.env.ADMIN_SECRET;
 
@@ -21,7 +21,7 @@ export default async function ProviderPage({
     where: { id: parseInt(id) },
   }); 
 
-  if (!service || (!service.approved && !service.suspended && !isAdmin)) {
+  if (!service || (!service.approved && !isAdmin)) {
     return notFound();
   }
 
@@ -35,7 +35,6 @@ export default async function ProviderPage({
             &larr; Voltar para a busca
           </Link>
 
-          {/* 2. Botão que só aparece para você */}
           {isAdmin && (
             <Link href={`/admin/provider/${id}/edit`}>
               <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">
@@ -73,6 +72,16 @@ export default async function ProviderPage({
                 )}
               </div>
               <h1 className="text-4xl font-bold text-slate-900">{service.name}</h1>
+              
+              {/* Exibição da Descrição Completa */}
+              {service.description && (
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Sobre o Negócio</h3>
+                  <p className="text-slate-600 leading-relaxed text-lg whitespace-pre-wrap">
+                    {service.description}
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
@@ -90,26 +99,15 @@ export default async function ProviderPage({
               </div>
             </div>
 
-            <div className="pt-6">
-              <p className="text-slate-600 text-sm leading-relaxed italic">
-                Este negócio faz parte da rede Ecosol - Economia Solidária Entre Autistas. 
-                Ao contratar este serviço, você apoia diretamente um empreendedor da nossa comunidade.
-              </p>
-            </div>
-
             <div className="pt-4 flex gap-3">
               {service.whatsapp && (
                 <a 
-                  href={
-                    service.whatsapp.startsWith('http') 
-                      ? service.whatsapp 
-                      : `https://wa.me/${service.whatsapp.replace(/\D/g, '')}`
-                  } 
+                  href={`https://wa.me/${service.whatsapp.replace(/\D/g, '')}`} 
                   target="_blank" 
                   rel="noreferrer" 
                   className="flex-1"
                 >
-                  <Button className="w-full bg-green-600 hover:bg-green-700">
+                  <Button className="w-full bg-green-600 hover:bg-green-700 h-12 text-lg font-bold">
                     Chamar no WhatsApp
                   </Button>
                 </a>

@@ -16,6 +16,7 @@ export default function SearchBar() {
     
     // Atualiza a URL de forma suave (SPA navigation)
     router.push(`/?${params.toString()}`);
+    router.refresh();
   }
 
   return (
