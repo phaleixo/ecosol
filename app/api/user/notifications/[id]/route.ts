@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import prisma from "@/lib/prisma"; //
 
 // PATCH: Marcar notificação individual como lida
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // Tipagem como Promise
 ) {
   try {
+    const { id } = await params; // Resolução assíncrona do id
+    
     await prisma.notification.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) }, // Uso do id resolvido no Prisma
       data: { read: true },
     });
+    
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Erro ao atualizar" }, { status: 500 });
@@ -20,12 +23,15 @@ export async function PATCH(
 // DELETE: Excluir notificação individual
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // Tipagem como Promise
 ) {
   try {
+    const { id } = await params; // Resolução assíncrona do id
+    
     await prisma.notification.delete({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
     });
+    
     return NextResponse.json({ success: true });
   } catch (error) {
     return NextResponse.json({ error: "Erro ao excluir" }, { status: 500 });
