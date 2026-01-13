@@ -4,14 +4,22 @@ import prisma from "@/lib/prisma";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { revalidatePath } from "next/cache";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 
-// Inicialização do Resend para notificações automáticas
-const resend = new Resend(process.env.RESEND_API_KEY);
+/**
+ * CONFIGURAÇÃO GMAIL (Nodemailer)
+ * Substitui o Resend para garantir o envio via ecosoltea@gmail.com
+ */
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_PASS,
+  },
+});
 
 /**
  * HELPER: Validação de Autenticação e Permissão
- * Centraliza a lógica para evitar repetição de código (DRY).
  */
 async function getAuthContext(id?: number) {
   const cookieStore = await cookies();
@@ -44,7 +52,7 @@ async function getAuthContext(id?: number) {
 }
 
 /**
- * ATUALIZAÇÃO: Permite que Admin ou o Dono editem o cadastro
+ * ATUALIZAÇÃO: Edição de cadastro
  */
 export async function updateServiceAction(id: number, formData: any) {
   const auth = await getAuthContext(id);
@@ -74,7 +82,7 @@ export async function updateServiceAction(id: number, formData: any) {
 }
 
 /**
- * SOFT DELETE: Move o item para a lixeira (deletedAt)
+ * SOFT DELETE: Lixeira
  */
 export async function deleteServiceAction(id: number) {
   const auth = await getAuthContext(id);
@@ -87,7 +95,6 @@ export async function deleteServiceAction(id: number) {
     });
     revalidatePath("/");
     revalidatePath("/admin/trash");
-    revalidatePath("/admin/dashboard");
     return { success: true };
   } catch (error) {
     return { success: false };
@@ -95,11 +102,75 @@ export async function deleteServiceAction(id: number) {
 }
 
 /**
- * RESTORE: Recupera da lixeira para o estado ativo
+ * BATCH APPROVE: Aprova e envia e-mails via GMAIL
+ */
+export async function approveServicesBatchAction(ids: number[]) {
+  const auth = await getAuthContext();
+  if (!auth.isAdmin) throw new Error("Ação restrita");
+
+  try {
+    const items = await prisma.service.findMany({
+      where: { id: { in: ids.map(id => Number(id)) } },
+      select: { name: true, email: true }
+    });
+
+    await prisma.service.updateMany({
+      where: { id: { in: ids.map(id => Number(id)) } },
+      data: { approved: true }
+    });
+
+    // Envio de e-mails via Nodemailer (Gmail)
+    await Promise.all(
+      items.map(async (item) => {
+        if (!item.email) return;
+        try {
+          await transporter.sendMail({
+            from: `"Ecosol" <${process.env.GMAIL_USER}>`,
+            to: item.email,
+            subject: '🎉 Seu negócio foi aprovado na Ecosol!',
+            html: `
+              <div style="font-family: sans-serif; background-color: #f8fafc; padding: 40px;">
+                <div style="max-width: 600px; margin: 0 auto; background: #fff; border-radius: 30px; border: 1px solid #e2e8f0; overflow: hidden; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);">
+                  <div style="background: #2563eb; padding: 30px; text-align: center; color: #fff;">
+                    <h1 style="margin: 0; font-size: 24px; font-weight: 900;">ECOSOL</h1>
+                    <p style="margin: 5px 0 0; font-size: 10px; text-transform: uppercase; letter-spacing: 2px;">Entre Autistas</p>
+                  </div>
+                  <div style="padding: 40px; text-align: center;">
+                    <h2 style="color: #0f172a; font-size: 20px;">Boas notícias!</h2>
+                    <p style="color: #64748b; line-height: 1.6;">O cadastro de <strong>${item.name}</strong> foi aprovado e já está visível para a comunidade.</p>
+                    <a href="${process.env.NEXT_PUBLIC_SITE_URL}" 
+                       style="display: inline-block; margin-top: 25px; background: #2563eb; color: #fff; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-weight: bold;">
+                      Ver no Site
+                    </a>
+                  </div>
+                  <div style="padding: 20px; background: #f1f5f9; text-align: center; font-size: 12px; color: #94a3b8;">
+                    Atenciosamente, <strong>Equipe Ecosol</strong>
+                  </div>
+                </div>
+              </div>
+            `
+          });
+        } catch (mailErr) {
+          console.error(`Erro ao enviar e-mail para ${item.email}:`, mailErr);
+        }
+      })
+    );
+
+    revalidatePath("/");
+    revalidatePath("/admin/dashboard");
+    return { success: true };
+  } catch (error) {
+    console.error("Batch Approve Error:", error);
+    return { success: false };
+  }
+}
+
+/**
+ * RESTORE: Recupera da lixeira
  */
 export async function restoreServiceAction(id: number) {
   const auth = await getAuthContext(id);
-  if (!auth.isAdmin) throw new Error("Permissão administrativa necessária");
+  if (!auth.isAdmin) throw new Error("Acesso negado");
 
   try {
     await prisma.service.update({
@@ -115,11 +186,11 @@ export async function restoreServiceAction(id: number) {
 }
 
 /**
- * HARD DELETE: Exclusão permanente do banco de dados
+ * HARD DELETE: Permanente
  */
 export async function permanentDeleteAction(id: number) {
   const auth = await getAuthContext(id);
-  if (!auth.isAdmin) throw new Error("Ação restrita ao administrador");
+  if (!auth.isAdmin) throw new Error("Acesso negado");
 
   try {
     await prisma.service.delete({ where: { id: Number(id) } });
@@ -131,64 +202,7 @@ export async function permanentDeleteAction(id: number) {
 }
 
 /**
- * BATCH APPROVE: Aprova em massa e envia e-mails profissionais
- */
-export async function approveServicesBatchAction(ids: number[]) {
-  const auth = await getAuthContext();
-  if (!auth.isAdmin) throw new Error("Ação restrita");
-
-  try {
-    // Busca dados para o e-mail antes da atualização
-    const items = await prisma.service.findMany({
-      where: { id: { in: ids.map(id => Number(id)) } },
-      select: { name: true, email: true }
-    });
-
-    await prisma.service.updateMany({
-      where: { id: { in: ids.map(id => Number(id)) } },
-      data: { approved: true }
-    });
-
-    // Envio de e-mails em paralelo para performance
-    await Promise.all(
-      items.map(item => {
-        if (!item.email) return;
-        return resend.emails.send({
-          from: 'Ecosol <contato@ecosolentreautistas.com.br>',
-          to: item.email,
-          subject: '🎉 Seu negócio foi aprovado na Ecosol!',
-          html: `
-            <div style="font-family: sans-serif; background-color: #f8fafc; padding: 40px;">
-              <div style="max-width: 600px; margin: 0 auto; background: #fff; border-radius: 30px; border: 1px solid #e2e8f0; overflow: hidden;">
-                <div style="background: #2563eb; padding: 30px; text-align: center; color: #fff;">
-                  <h1 style="margin: 0; font-size: 24px; font-weight: 900;">ECOSOL</h1>
-                  <p style="margin: 5px 0 0; font-size: 10px; text-transform: uppercase; letter-spacing: 2px;">Entre Autistas</p>
-                </div>
-                <div style="padding: 40px; text-align: center;">
-                  <h2 style="color: #0f172a; font-size: 20px;">Boas notícias!</h2>
-                  <p style="color: #64748b;">O cadastro de <strong>${item.name}</strong> foi aprovado e já está visível para a comunidade.</p>
-                  <a href="${process.env.NEXT_PUBLIC_SITE_URL}" style="display: inline-block; margin-top: 25px; background: #2563eb; color: #fff; padding: 12px 30px; border-radius: 12px; text-decoration: none; font-weight: bold;">Ver no Site</a>
-                </div>
-                <div style="padding: 20px; background: #f1f5f9; text-align: center; font-size: 12px; color: #94a3b8;">
-                  Atenciosamente, <strong>Equipe Ecosol</strong>
-                </div>
-              </div>
-            </div>
-          `
-        });
-      })
-    );
-
-    revalidatePath("/");
-    revalidatePath("/admin/dashboard");
-    return { success: true };
-  } catch (error) {
-    return { success: false };
-  }
-}
-
-/**
- * BATCH REMOVE: Move múltiplos itens para a lixeira
+ * BATCH REMOVE: Lixeira em massa
  */
 export async function removeServicesBatchAction(ids: number[]) {
   const auth = await getAuthContext();
@@ -208,7 +222,7 @@ export async function removeServicesBatchAction(ids: number[]) {
 }
 
 /**
- * BATCH RESTORE: Recupera múltiplos itens da lixeira
+ * BATCH RESTORE: Recuperação em massa
  */
 export async function restoreServicesBatchAction(ids: number[]) {
   const auth = await getAuthContext();
@@ -228,7 +242,7 @@ export async function restoreServicesBatchAction(ids: number[]) {
 }
 
 /**
- * BATCH PERMANENT DELETE: Remove definitivamente múltiplos itens
+ * BATCH PERMANENT DELETE: Exclusão em massa
  */
 export async function deleteServicesBatchAction(ids: number[]) {
   const auth = await getAuthContext();
