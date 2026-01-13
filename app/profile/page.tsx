@@ -52,7 +52,7 @@ export default async function ProfilePage() {
             <h1 className="text-3xl font-bold text-slate-900">Meu Perfil</h1>
             <p className="text-slate-500 text-sm">Painel de controle Ecosol.</p>
           </div>
-          <Link href="/profile/edit">
+          <Link href="/provider/edit">
             <Button variant="outline" className="border-blue-200 text-blue-600 font-bold">⚙️ Editar Dados</Button>
           </Link>
         </div>

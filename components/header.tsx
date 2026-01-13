@@ -12,18 +12,11 @@ export default function Header() {
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [notifications, setNotifications] = React.useState([]);
 
-  /**
-   * Função isolada para buscar notificações (Engenharia de Reuso)
-   * Agora com guarda de segurança para evitar fetch sem e-mail
-   */
   const fetchNotifications = async (email: string) => {
     if (!email) return;
-
     try {
       const res = await fetch(`/api/user/notifications?email=${email}`);
-      // Como a API agora retorna [] para novos usuários, o res.ok será true
       if (!res.ok) throw new Error("Falha ao carregar notificações");
-      
       const data = await res.json();
       setNotifications(data);
     } catch (err) {
@@ -31,44 +24,33 @@ export default function Header() {
     }
   };
 
-  /**
-   * Sincronização de Estado do Usuário e Dados Iniciais
-   * Otimizada com buscas em paralelo para performance
-   */
   React.useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
       if (session?.user) {
         setUser(session.user);
         const userEmail = session.user.email;
-        
         try {
-          // Busca role e notificações simultaneamente para reduzir latência
           const [roleRes] = await Promise.all([
             fetch(`/api/user/role?email=${userEmail}`)
           ]);
-          
           if (roleRes.ok) {
             const roleData = await roleRes.json();
             setRole(roleData.role);
           }
-
           if (userEmail) await fetchNotifications(userEmail);
         } catch (err) {
           console.warn("Aguardando sincronização de perfil no banco...");
-          setRole("USER"); // Fallback seguro
+          setRole("USER");
         }
       }
     };
 
     checkUser();
 
-    // Listener para mudanças de autenticação em tempo real
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const activeUser = session?.user ?? null;
       setUser(activeUser);
-
       if (activeUser?.email) {
         fetchNotifications(activeUser.email);
       } else {
@@ -85,7 +67,6 @@ export default function Header() {
     window.location.href = "/";
   };
 
-  // Lógica para o ponto vermelho de alerta (Estado computado)
   const hasUnread = notifications.some((n: any) => !n.read);
 
   return (
@@ -108,13 +89,14 @@ export default function Header() {
 
           <nav className="flex items-center gap-3">
             {!user ? (
-              <>
-                <Link href="/login"><Button variant="ghost" size="sm">Entrar</Button></Link>
-                <Link href="/submit"><Button size="sm">Cadastrar Negócio</Button></Link>
-              </>
+              // Visão para visitantes: apenas o botão de entrar
+              <Link href="/login">
+                <Button variant="ghost" size="sm" className="font-bold">Entrar</Button>
+              </Link>
             ) : (
+              // Visão para usuários logados
               <div className="flex items-center gap-4">
-                {/* Botão de Notificações com Feedback Visual */}
+                {/* Botão de Notificações */}
                 <button 
                   onClick={() => setIsModalOpen(true)}
                   className="relative p-2 text-slate-500 hover:bg-slate-100 rounded-full transition-colors"
@@ -126,6 +108,7 @@ export default function Header() {
                   )}
                 </button>
 
+                {/* Botão administrativo */}
                 {role === "ADMIN" && (
                   <Link href="/admin/dashboard" className="hidden sm:block">
                     <Button variant="outline" size="sm" className="border-blue-200 text-blue-600 hover:bg-blue-50 font-bold">
@@ -134,6 +117,14 @@ export default function Header() {
                   </Link>
                 )}
 
+                {/* NOVO: Botão de Cadastro movido para após o login */}
+                <Link href="/submit">
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 font-bold shadow-sm">
+                    Cadastrar Negócio
+                  </Button>
+                </Link>
+
+                {/* Ícone de Perfil */}
                 <Link href="/profile" title="Ver meu perfil">
                   <div className="w-9 h-9 rounded-full bg-blue-600 border border-blue-700 flex items-center justify-center text-white text-sm font-black uppercase shadow-sm hover:scale-110 transition-transform">
                     {user.email?.[0]}
@@ -154,7 +145,6 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Modal sincronizado com a função de atualização */}
       <NotificationModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 

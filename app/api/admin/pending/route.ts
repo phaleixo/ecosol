@@ -1,16 +1,22 @@
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { checkAdminAuth } from "@/lib/auth-check";
 
 export async function GET() {
-  const isAuthorized = await checkAdminAuth();
-  
-  if (!isAuthorized) {
-    return new Response(JSON.stringify({ error: "Acesso negado" }), { status: 401 });
-  }
+  try {
+    // Busca serviços pendentes e não suspensos
+    const pendingServices = await prisma.service.findMany({
+      where: {
+        approved: false,
+        suspended: false,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-  const pending = await prisma.service.findMany({ 
-    where: { approved: false } 
-  });
-  
-  return new Response(JSON.stringify(pending), { status: 200 });
+    return NextResponse.json(pendingServices);
+  } catch (error) {
+    console.error("Erro na API de Pendentes:", error);
+    return NextResponse.json({ error: "Erro ao buscar dados" }, { status: 500 });
+  }
 }
