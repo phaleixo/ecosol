@@ -1,98 +1,96 @@
 # 🌿 Ecosol - Plataforma de Economia Solidária
 
-Plataforma voltada para a gestão e fomento da economia solidária entre autistas, desenvolvida com foco em alta performance, segurança de dados e escalabilidade. Este projeto integra o portfólio de um estudante de engenharia de computação no primeiro período do curso, com foco no aprimoramento da qualidade do código e otimização de sistemas.
-
-Este é um projeto [Next.js](https://nextjs.org) iniciado com `create-next-app`.
-
-## 🚀 Tecnologias e Ferramentas
-* **Framework**: [Next.js 15 (App Router)](https://nextjs.org)
-* **Linguagens**: TypeScript e JavaScript
-* **ORM**: [Prisma 7.2](https://www.prisma.io)
-* **Banco de Dados**: [Supabase (PostgreSQL)](https://supabase.com)
-* **Estilização**: Tailwind CSS & Shadcn/UI
+A **Ecosol** é uma plataforma voltada para a gestão e fomento da economia solidária, projetada para conectar prestadores e consumidores em um ecossistema sustentável. Desenvolvida com foco em performance e escalabilidade utilizando **Next.js 16**, **Prisma 7.2** e **Supabase**.
 
 ---
 
-## 🛠️ Configuração do Backend (Prisma 7 + Supabase)
+## 🚀 Tecnologias principais
 
-### 1. Variáveis de Ambiente (.env.local)
-O uso do arquivo `.env.local` é essencial para evitar o vazamento de credenciais em repositórios públicos e gerenciar integrações de API de forma segura. Certifique-se de que sua senha do banco de dados tenha caracteres especiais codificados (Ex: `*` vira `%2A`, `@` vira `%40`).
+* **Framework:** [Next.js 16 (Turbopack)](https://nextjs.org/)
+* **ORM:** [Prisma 7.2](https://www.prisma.io/)
+* **Database:** [Supabase (PostgreSQL)](https://supabase.com/)
+* **E-mail:** [Resend](https://resend.com/)
+* **Estilização:** Tailwind CSS
 
-```env
+---
+
+## 💻 Começando
+
+Primeiro, instale as dependências:
+
+```bash
+npm install
+
+Depois, inicie o servidor de desenvolvimento:
+Bash
+
+npm run dev
+
+Abra http://localhost:3000 no seu navegador para ver o resultado.
+🛠 Configuração do Backend (Prisma 7 + Supabase)
+
+No Prisma 7.2, as URLs de conexão não são mais suportadas diretamente no arquivo schema.prisma. Elas são gerenciadas via prisma.config.ts.
+1. Variáveis de Ambiente (.env)
+
+Certifique-se de que caracteres especiais na senha estejam codificados (ex: * como %2A, $ como %24). Recomenda-se o host IPv4 para evitar problemas de conexão em sistemas Linux.
+Snippet de código
+
 # URL para a aplicação (Porta 6543 - Transaction Mode com PgBouncer)
-DATABASE_URL="postgresql://postgres.[ID]:[SENHA_CODIFICADA]@[aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true](https://aws-0-sa-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true)"
+DATABASE_URL="postgresql://postgres.[ID]:[SENHA]@[HOST]:6543/postgres?pgbouncer=true"
 
 # URL para Migrações e CLI (Porta 5432 - Session Mode Direto)
-DIRECT_URL="postgresql://postgres:[SENHA_CODIFICADA]@db.[ID].supabase.co:5432/postgres"
+DIRECT_URL="postgresql://postgres.[ID]:[SENHA]@[HOST]:5432/postgres"
 
 # Supabase Keys
 NEXT_PUBLIC_SUPABASE_URL="https://[ID].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="sua_chave_anon_aqui"
 
-2. Sincronização de Banco de Dados
+# E-mail Service
+RESEND_API_KEY="re_sua_chave_aqui"
 
-Para refletir as alterações do schema no seu banco de dados Supabase e otimizar a performance, utilize os comandos abaixo:
+2. Configuração do Prisma CLI (prisma.config.ts)
+
+O arquivo de configuração deve apontar para a DIRECT_URL para que as migrações e comandos de terminal funcionem corretamente:
+TypeScript
+
+import { defineConfig } from '@prisma/config';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
+
+export default defineConfig({
+  datasource: {
+    // O CLI utiliza esta URL para migrações (Porta 5432)
+    url: process.env.DIRECT_URL as string,
+  },
+});
+
+3. Sincronização de Banco de Dados
 Bash
 
 # Gerar o Prisma Client
 npx prisma generate
 
-# Sincronizar esquema com o banco (utiliza a DIRECT_URL definida no ambiente)
+# Sincronizar o schema com o banco (ou usar migrate para dev)
 npx prisma db push
 
-🔐 Segurança e Infraestrutura (Database Patches)
+🔐 Autenticação e Storage (Supabase)
 
-Implementamos correções críticas para evitar a exposição de dados sensíveis e garantir a integridade da plataforma. Aplique os comandos abaixo no SQL Editor do Supabase:
-1. Patch de Segurança: Blindagem de Dados (RLS)
-SQL
+Configurações obrigatórias no painel do Supabase:
 
--- 1. Ativação de Segurança de Nível de Linha (RLS)
-ALTER TABLE "User" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Service" ENABLE ROW LEVEL SECURITY;
-ALTER TABLE "Notification" ENABLE ROW LEVEL SECURITY;
+    Redirect URLs: Adicione http://localhost:3000/** em Authentication > URL Configuration.
 
--- 2. Políticas de Acesso (Engenharia de Segurança)
-CREATE POLICY "Serviços visíveis para todos" ON "Service" FOR SELECT USING (true);
-CREATE POLICY "Usuários gerenciam seu próprio perfil" ON "User" USING (auth.uid()::text = id::text);
-CREATE POLICY "Notificações privadas" ON "Notification" FOR SELECT USING (auth.uid()::text = "userId"::text);
+    Storage: Criar um bucket público chamado logos para armazenamento de imagens.
 
--- 3. Otimização de Performance (Indexação)
--- Resolve o alerta "Unindexed foreign keys" e acelera buscas
-CREATE INDEX IF NOT EXISTS "idx_notification_user_id" ON "Notification" ("userId");
-CREATE INDEX IF NOT EXISTS "idx_service_category" ON "Service" ("category");
+    Auth Helpers: Implementado em app/oauth/consent/page.tsx para gerenciar autorizações de login.
 
-2. Configuração do Storage (Bucket logos)
+📦 Deploy
 
-Gerenciamento escalável de mídias para os serviços cadastrados:
-SQL
-
--- 1. Criação do Bucket 'logos'
-INSERT INTO storage.buckets (id, name, public) VALUES ('logos', 'logos', true);
-
--- 2. Políticas de Storage
-CREATE POLICY "Logos públicas" ON storage.objects FOR SELECT USING (bucket_id = 'logos');
-CREATE POLICY "Upload por usuários autenticados" ON storage.objects 
-FOR INSERT WITH CHECK (bucket_id = 'logos' AND auth.role() = 'authenticated');
-
-⚙️ Getting Started (Desenvolvimento)
-
-Instale as dependências e inicie o servidor local:
+O projeto está configurado para deploy contínuo na Vercel. Para realizar o deploy via terminal:
 Bash
 
-npm install
-npm run dev
+# Preview
+vercel
 
-Abra http://localhost:3000 no seu navegador.
-📈 Roadmap
-
-    [x] RBAC (Role Based Access Control) para Admins e Usuários.
-
-    [x] Sistema de notificações profissional com seleção múltipla.
-
-    [x] Máscara dinâmica para campos de WhatsApp (RegEx).
-
-    [x] Implementação de upload de imagens para o Bucket logos.
-
-    [ ] Implementação de autenticação via Google.
-
-Desenvolvido com foco em engenharia, performance e impacto social.
+# Produção
+vercel --prod
