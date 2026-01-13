@@ -15,7 +15,7 @@ interface CategoryFilterProps {
 export default function CategoryFilter({ categories, activeCategory, onSelect }: CategoryFilterProps) {
   return (
     /* py-1 para manter a barra compacta e responsiva */
-    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1 transition-colors">
+    <div className="flex gap-2 overflow-x-auto no-scrollbar mb-2 py-1 transition-colors">
       {categories.map((c) => {
         const isActive = activeCategory === c.name;
         
