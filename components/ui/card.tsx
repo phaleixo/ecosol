@@ -1,3 +1,4 @@
+"use client";
 import * as React from "react";
 
 export function Card({
@@ -8,7 +9,15 @@ export function Card({
   className?: string;
 }) {
   return (
-    <div className={"rounded-lg border bg-white p-4 shadow-sm " + className}>
+    <div className={`
+      /* Estrutura Sólida e Arredondada */
+      bg-white border border-slate-100 rounded-[2rem] p-5
+      
+      /* Sombras e Transições de Engenharia */
+      shadow-sm hover:shadow-xl hover:shadow-blue-500/5 
+      hover:border-blue-100 transition-all duration-300
+      ${className}
+    `}>
       {children}
     </div>
   );

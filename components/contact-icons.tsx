@@ -1,16 +1,14 @@
+"use client";
 import * as React from "react";
+import { 
+  Instagram, 
+  MessageCircle, 
+  Globe, 
+  Mail, 
+  Music2 // Ícone moderno para TikTok
+} from "lucide-react";
 
-function Icon({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-slate-100 text-slate-700">
-      {children}
-    </span>
-  );
-}
-
-export default function ContactIcons({
-  contacts,
-}: {
+interface ContactIconsProps {
   contacts: {
     whatsapp?: string;
     instagram?: string;
@@ -18,33 +16,74 @@ export default function ContactIcons({
     email?: string;
     site?: string;
   };
+}
+
+/**
+ * Componente de Ícone Unificado
+ * Mantém o padrão visual de "botão suave"
+ */
+function ContactLink({ 
+  href, 
+  children, 
+  title 
+}: { 
+  href: string; 
+  children: React.ReactNode; 
+  title: string 
 }) {
   return (
-    <div className="flex items-center gap-2">
+    <a 
+      href={href} 
+      target="_blank" 
+      rel="noreferrer"
+      title={title}
+      className="inline-flex items-center justify-center h-9 w-9 rounded-xl bg-slate-50 text-slate-400 border border-slate-100 hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all duration-200"
+    >
+      {children}
+    </a>
+  );
+}
+
+export default function ContactIcons({ contacts }: ContactIconsProps) {
+  return (
+    <div className="flex items-center gap-1.5">
       {contacts.whatsapp && (
-        <a href={contacts.whatsapp} target="_blank" rel="noreferrer">
-          <Icon>W</Icon>
-        </a>
+        <ContactLink 
+          href={`https://wa.me/${contacts.whatsapp.replace(/\D/g, "")}`} 
+          title="WhatsApp"
+        >
+          <MessageCircle size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
+
       {contacts.instagram && (
-        <a href={contacts.instagram} target="_blank" rel="noreferrer">
-          <Icon>I</Icon>
-        </a>
+        <ContactLink 
+          href={`https://instagram.com/${contacts.instagram.replace("@", "")}`} 
+          title="Instagram"
+        >
+          <Instagram size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
+
       {contacts.tiktok && (
-        <a href={contacts.tiktok} target="_blank" rel="noreferrer">
-          <Icon>T</Icon>
-        </a>
+        <ContactLink 
+          href={`https://tiktok.com/@${contacts.tiktok.replace("@", "")}`} 
+          title="TikTok"
+        >
+          <Music2 size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
+
       {contacts.email && (
-        <a href={`mailto:${contacts.email}`}>
-          <Icon>@</Icon>
-        </a>
+        <ContactLink href={`mailto:${contacts.email}`} title="E-mail">
+          <Mail size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
+
       {contacts.site && (
-        <a href={contacts.site} target="_blank" rel="noreferrer">
-          <Icon>🌐</Icon>
-        </a>
+        <ContactLink href={contacts.site} title="Site Oficial">
+          <Globe size={18} strokeWidth={2.5} />
+        </ContactLink>
       )}
     </div>
   );

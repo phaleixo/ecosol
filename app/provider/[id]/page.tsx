@@ -7,6 +7,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { createServerClient } from '@supabase/ssr';
 import WhatsAppButton from "@/components/whatsapp-button";
+import { ArrowLeft, Settings, Eye } from "lucide-react";
 
 export default async function ProviderPage({
   params,
@@ -48,69 +49,83 @@ export default async function ProviderPage({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-12">
       <Header />
-      <main className="mx-auto max-w-4xl p-6 py-12">
-        <div className="flex justify-between items-center mb-6">
-          <Link href="/" className="text-sm text-blue-600 hover:underline">
-            &larr; Voltar para a busca
+      
+      <main className="mx-auto max-w-4xl px-4 py-6 md:py-8">
+        {/* 1. Navegação de Topo Compacta */}
+        <div className="flex justify-between items-center mb-4 px-2">
+          <Link href="/" className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-blue-600 transition-colors">
+            <ArrowLeft className="h-3 w-3" /> Voltar para a busca
           </Link>
           
           {canEdit && (
             <Link href={isAdmin ? `/admin/provider/${id}/edit` : `/provider/edit/${id}`}>
-              <Button variant="outline" className="border-blue-200 text-blue-600 font-bold">
-                {isAdmin ? "⚙️ Editar como Admin" : "📝 Editar meu Negócio"}
+              <Button variant="outline" className="h-8 border-blue-100 text-blue-600 font-black text-[9px] uppercase tracking-widest rounded-xl hover:bg-blue-50 transition-all flex gap-2">
+                <Settings className="h-3.5 w-3.5" />
+                {isAdmin ? "Admin Edit" : "Editar Negócio"}
               </Button>
             </Link>
           )}
         </div>
 
-        <div className="bg-white rounded-2xl shadow-sm border p-8 flex flex-col md:flex-row gap-8">
-          <div className="w-full md:w-1/3 aspect-square rounded-xl bg-slate-100 overflow-hidden border">
+        {/* 2. Card Principal: Arredondamento 2.5rem unificado */}
+        <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 p-4 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
+          
+          {/* Imagem: Quadrada e compacta no desktop */}
+          <div className="w-full md:w-2/5 aspect-square rounded-[2rem] bg-slate-50 overflow-hidden border border-slate-50 shadow-inner">
             {service.image ? (
               <img src={service.image} alt={service.name} className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center bg-slate-100">
-                <span className="text-6xl text-slate-300">🏢</span>
+              <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                <span className="text-6xl grayscale opacity-20">🏢</span>
               </div>
             )}
           </div>
 
-          <div className="flex-1 space-y-6">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <span className="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase">
-                  {service.category}
+          {/* Conteúdo: Hierarquia Visual de Engenharia */}
+          <div className="flex-1 flex flex-col">
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-[8px] font-black text-blue-600 uppercase tracking-[0.25em] px-3 py-1 bg-blue-50 rounded-full">
+                {service.category}
+              </span>
+              {canEdit && (
+                <span className="flex items-center gap-1.5 text-[9px] font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full border border-slate-100">
+                  <Eye className="h-3 w-3" /> {service.views} visitas
                 </span>
-                {canEdit && (
-                  <span className="text-xs bg-slate-100 px-2 py-1 rounded font-mono">
-                    👁️ {service.views} visitas
-                  </span>
+              )}
+            </div>
+
+            <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tighter uppercase leading-none mb-4">
+              {service.name}
+            </h1>
+
+            <p className="text-sm md:text-base text-slate-500 leading-relaxed font-medium whitespace-pre-wrap mb-8">
+              {service.description}
+            </p>
+
+            <div className="mt-auto space-y-6">
+              {/* Contatos com os novos ícones visuais */}
+              <div className="space-y-3">
+                <h3 className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-300">
+                  Canais de Atendimento
+                </h3>
+                <ContactIcons 
+                  contacts={{
+                    whatsapp: service.whatsapp ?? undefined,
+                    instagram: service.instagram ?? undefined,
+                    tiktok: service.tiktok ?? undefined,
+                    email: service.email ?? undefined,
+                    site: service.site ?? undefined,
+                  }} 
+                />
+              </div>
+
+              <div className="pt-2">
+                {service.whatsapp && (
+                  <WhatsAppButton phone={service.whatsapp} providerEmail={service.email || ""} />
                 )}
               </div>
-              <h1 className="text-4xl font-bold tracking-tight">{service.name}</h1>
-              <p className="mt-6 text-slate-600 leading-relaxed whitespace-pre-wrap">{service.description}</p>
-            </div>
-
-            <div className="space-y-4">
-              <h3 className="font-bold text-lg border-b pb-2 uppercase text-slate-400 text-[10px] tracking-widest">
-                Contatos Diretos
-              </h3>
-              <ContactIcons 
-                contacts={{
-                  whatsapp: service.whatsapp ?? undefined,
-                  instagram: service.instagram ?? undefined,
-                  tiktok: service.tiktok ?? undefined,
-                  email: service.email ?? undefined,
-                  site: service.site ?? undefined,
-                }} 
-              />
-            </div>
-
-            <div className="pt-4">
-              {service.whatsapp && (
-                <WhatsAppButton phone={service.whatsapp} providerEmail={service.email || ""} />
-              )}
             </div>
           </div>
         </div>

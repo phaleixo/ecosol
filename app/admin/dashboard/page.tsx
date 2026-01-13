@@ -1,8 +1,9 @@
 "use client";
 import * as React from "react";
+import Link from "next/link";
 import Header from "@/components/header";
 import { Button } from "@/components/ui/button";
-import ServiceCard from "@/components/service-card";
+import DashboardList from "./dashboard-list"; // O novo componente que criamos
 
 export default function AdminDashboard() {
   const [pending, setPending] = React.useState<any[]>([]);
@@ -21,91 +22,34 @@ export default function AdminDashboard() {
     }
   }
 
-  // Removido a checagem de sessionStorage, o Middleware cuida disso!
-  React.useEffect(() => {
-    load();
-  }, []);
+  React.useEffect(() => { load(); }, []);
 
-  async function approve(id: number) {
-    const res = await fetch("/api/admin/approve", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    if (res.ok) load();
-  }
-
-  async function action(id: number, type: "suspend" | "remove") {
-    const res = await fetch("/api/admin/action", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, type }),
-    });
-    if (res.ok) load();
-  }
-
-  if (loading) return <div className="p-10 text-center">Carregando painel...</div>;
+  if (loading) return <div className="p-10 text-center font-bold text-slate-400 animate-pulse">Carregando painel...</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-32">
       <Header />
       <main className="mx-auto max-w-6xl p-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-10 gap-4">
           <div>
-            <h2 className="text-2xl font-bold">Painel de Controle</h2>
-            <p className="text-slate-600">Gerencie as solicitações pendentes</p>
+            <h2 className="text-4xl font-black tracking-tighter text-slate-900">Painel de Controle</h2>
+            <p className="text-slate-500 font-medium">Aprovação de serviços na rede Ecosol.</p>
           </div>
-          <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">
-            {pending.length} Pendentes
-          </span>
+          
+          <div className="flex items-center gap-3">
+            <Link href="/admin/trash">
+              <Button variant="outline" className="rounded-2xl border-slate-200 bg-white font-bold h-12 px-6 shadow-sm hover:bg-slate-50">
+                🗑️ Ver Lixeira
+              </Button>
+            </Link>
+            <div className="bg-blue-600 text-white px-6 py-2.5 rounded-2xl text-sm font-black shadow-lg shadow-blue-100">
+              {pending.length} Pendentes
+            </div>
+          </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {pending.length === 0 ? (
-            <div className="col-span-full bg-white p-12 rounded-xl border border-dashed text-center text-slate-500">
-              Não há serviços aguardando aprovação.
-            </div>
-          ) : (
-            pending.map((p) => (
-              <div key={p.id} className="bg-white p-4 rounded-xl border shadow-sm space-y-4">
-                {/* Sanitização dos dados para o ServiceCard não quebrar */}
-                <ServiceCard service={{
-                  ...p,
-                  whatsapp: p.whatsapp ?? undefined,
-                  instagram: p.instagram ?? undefined,
-                  tiktok: p.tiktok ?? undefined,
-                  email: p.email ?? undefined,
-                  site: p.site ?? undefined,
-                }} />
-                
-                <div className="flex flex-col gap-2 pt-2 border-t">
-                  <Button 
-                    onClick={() => approve(p.id)}
-                    className="w-full bg-green-600 hover:bg-green-700"
-                  >
-                    Aprovar Serviço
-                  </Button>
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => action(p.id, "suspend")}
-                      variant="outline"
-                      className="flex-1"
-                    >
-                      Suspender
-                    </Button>
-                    <Button 
-                      onClick={() => action(p.id, "remove")}
-                      variant="destructive"
-                      className="flex-1"
-                    >
-                      Excluir
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+        {/* Componente de Lista que abstrai toda a lógica de seleção e batch */}
+        <DashboardList initialItems={pending} onRefresh={load} />
       </main>
     </div>
   );
