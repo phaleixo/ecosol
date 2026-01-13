@@ -9,7 +9,6 @@ import { CheckCircle2, Trash2, Check, Loader2, Inbox } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Swal from 'sweetalert2';
 
-// Importação da Central de Estilo e Notificações
 import { swalConfig } from "@/lib/swal";
 import { notify } from "@/lib/toast";
 
@@ -41,7 +40,6 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
 
     if (count === 0) return;
     
-    // 1. Confirmação Neon Padronizada
     const result = await Swal.fire({
       ...swalConfig,
       title: isApprove ? 'Aprovar Cadastros?' : 'Recusar Itens?',
@@ -49,7 +47,6 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
       icon: 'question',
       showCancelButton: true,
       confirmButtonText: isApprove ? 'Sim, Aprovar' : 'Sim, Recusar',
-      // Ajuste dinâmico para botão destrutivo mantendo a simetria e sombra
       customClass: {
         ...swalConfig.customClass,
         confirmButton: isApprove 
@@ -60,8 +57,6 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
 
     if (result.isConfirmed) {
       setIsProcessing(true);
-      
-      // 2. Modal de Sincronização com Neon
       Swal.fire({
         ...swalConfig,
         title: 'Sincronizando...',
@@ -74,7 +69,6 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
           ? await approveServicesBatchAction(idsToProcess) 
           : await removeServicesBatchAction(idsToProcess);
         
-        // 3. GESTOR AUTOMÁTICO: Fecha o Swal e abre o Toast Neon
         notify.auto(res.success, isApprove ? 'Aprovado com sucesso!' : 'Removido com sucesso!');
         
         if (res.success) {
@@ -90,39 +84,42 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
   };
 
   return (
-    <div className={cn("space-y-8 transition-all duration-500", isProcessing && "opacity-60 pointer-events-none")}>
+    <div className={cn("space-y-6 sm:space-y-8 transition-all duration-500 pb-24", isProcessing && "opacity-60 pointer-events-none")}>
       
+      {/* BARRA DE SELEÇÃO SUPERIOR RESPONSIVA */}
       {isAdmin && initialItems.length > 0 && (
-        <div className="flex items-center justify-between px-8 py-5 bg-card border border-border rounded-[2rem] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
-          <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between px-4 sm:px-8 py-3 sm:py-5 bg-card border border-border rounded-2xl sm:rounded-[2rem] shadow-sm animate-in fade-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Checkbox 
               checked={selectedIds.length === initialItems.length && initialItems.length > 0}
               onCheckedChange={toggleSelectAll}
               disabled={isProcessing}
-              className="h-6 w-6 rounded-lg border-2"
+              className="h-5 w-5 sm:h-6 sm:w-6 rounded-md sm:rounded-lg border-2"
             />
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1">Logística de Curadoria</span>
-              <span className="text-sm font-bold text-foreground">
-                {selectedIds.length} de {initialItems.length} selecionados
+              <span className="hidden sm:block text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground leading-none mb-1">
+                Logística de Curadoria
+              </span>
+              <span className="text-xs sm:text-sm font-bold text-foreground">
+                {selectedIds.length} <span className="hidden xs:inline">selecionados</span>
               </span>
             </div>
           </div>
           {selectedIds.length > 0 && !isProcessing && (
-            <Button variant="ghost" onClick={() => setSelectedIds([])} className="text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/10 transition-all">
-              Desmarcar Tudo
+            <Button variant="ghost" onClick={() => setSelectedIds([])} className="h-auto p-0 sm:p-2 text-[9px] sm:text-[10px] font-black text-primary uppercase tracking-widest hover:bg-primary/10 transition-all">
+              Desmarcar
             </Button>
           )}
         </div>
       )}
 
-      {/* GRID DE CARDS E DOCK... (Mantidos como estavam) */}
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {/* GRID DE CARDS */}
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {initialItems.map((p) => (
           <div key={p.id} onClick={() => toggleSelect(p.id)} className="group relative">
             <Card 
               className={cn(
-                "relative transition-all duration-500 rounded-[2.5rem] p-6 border-2 h-full flex flex-col",
+                "relative transition-all duration-500 rounded-[2rem] sm:rounded-[2.5rem] p-4 sm:p-6 border-2 h-full flex flex-col",
                 isAdmin && "cursor-pointer",
                 selectedIds.includes(p.id) 
                   ? 'border-primary bg-primary/5 shadow-2xl scale-[0.98]' 
@@ -136,34 +133,27 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
                   <div className="flex gap-2 mt-auto pt-4 border-t border-border">
                     <Button 
                       disabled={isProcessing}
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        handleBatchAction("approve", [p.id]); 
-                      }}
+                      onClick={(e) => { e.stopPropagation(); handleBatchAction("approve", [p.id]); }}
                       variant="ghost"
-                      className="flex-1 h-10 text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 font-black gap-2 rounded-2xl transition-all"
+                      className="flex-1 h-9 sm:h-10 text-[9px] sm:text-[10px] uppercase tracking-widest text-primary hover:bg-primary/10 font-black gap-2 rounded-xl sm:rounded-2xl"
                     >
-                      <CheckCircle2 className="h-4 w-4" /> Aprovar
+                      <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> Aprovar
                     </Button>
-                    
                     <Button 
                       disabled={isProcessing}
-                      onClick={(e) => { 
-                        e.stopPropagation(); 
-                        handleBatchAction("remove", [p.id]); 
-                      }}
+                      onClick={(e) => { e.stopPropagation(); handleBatchAction("remove", [p.id]); }}
                       variant="ghost"
-                      className="h-10 px-4 rounded-2xl text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
+                      className="h-9 sm:h-10 px-3 sm:px-4 rounded-xl sm:rounded-2xl text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 )}
               </div>
 
               {selectedIds.includes(p.id) && (
-                <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground rounded-full p-1.5 shadow-lg ring-4 ring-background animate-in zoom-in">
-                  <Check className="h-4 w-4 stroke-[4px]" />
+                <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground rounded-full p-1 shadow-lg ring-2 ring-background animate-in zoom-in">
+                  <Check className="h-3 w-3 sm:h-4 sm:w-4 stroke-[4px]" />
                 </div>
               )}
             </Card>
@@ -172,43 +162,48 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
       </div>
 
       {initialItems.length === 0 && (
-        <div className="py-32 text-center bg-card rounded-[3rem] border-2 border-dashed border-border">
-          <Inbox className="w-16 h-16 text-muted-foreground/20 mx-auto mb-4" />
-          <h3 className="text-xl font-black text-foreground uppercase tracking-tight leading-none">Tudo em ordem</h3>
-          <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em] mt-2">Nenhum cadastro pendente</p>
+        <div className="py-20 sm:py-32 text-center bg-card rounded-[2rem] sm:rounded-[3rem] border-2 border-dashed border-border">
+          <Inbox className="w-12 h-12 sm:w-16 sm:h-16 text-muted-foreground/20 mx-auto mb-4" />
+          <h3 className="text-lg sm:text-xl font-black text-foreground uppercase tracking-tight">Tudo em ordem</h3>
+          <p className="text-muted-foreground text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] mt-2">Nenhum cadastro pendente</p>
         </div>
       )}
 
-      {/* DOCK DE AÇÕES... */}
+      {/* DOCK DE AÇÕES - VERSÃO MOBILE OPTIMIZED */}
       {isAdmin && selectedIds.length > 0 && (
-        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-8 bg-background border-2 border-primary px-8 py-5 rounded-[2.5rem] shadow-[0_20px_40px_rgba(0,0,0,0.3)] animate-in fade-in slide-in-from-bottom-10 duration-500">
-          <div className="flex items-center gap-4 pr-8 border-r border-border">
-            <div className="h-12 w-12 bg-primary text-primary-foreground rounded-2xl flex items-center justify-center font-black text-lg rotate-3 shadow-lg shadow-primary/20">
-              {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : selectedIds.length}
+        <div className="fixed bottom-4 sm:bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 sm:gap-8 bg-background/95 backdrop-blur-md border-2 border-primary px-3 sm:px-8 py-3 sm:py-5 rounded-2xl sm:rounded-[2.5rem] shadow-2xl animate-in fade-in slide-in-from-bottom-10 duration-500 w-[92%] sm:w-auto">
+          
+          {/* Contador */}
+          <div className="flex items-center gap-2 sm:gap-4 pr-3 sm:pr-8 border-r border-border">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 bg-primary text-primary-foreground rounded-xl sm:rounded-2xl flex items-center justify-center font-black text-sm sm:text-lg rotate-2 shadow-lg">
+              {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : selectedIds.length}
             </div>
-            <div className="hidden sm:block">
-              <p className="text-[10px] font-black text-foreground uppercase tracking-[0.2em] leading-none mb-1">Lote</p>
-              <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest leading-none">
-                {isProcessing ? "Sincronizando" : "Selecionados"}
+            <div className="hidden xs:block">
+              <p className="text-[8px] sm:text-[10px] font-black text-foreground uppercase tracking-widest leading-none mb-1">Lote</p>
+              <p className="text-[8px] sm:text-[10px] font-black text-muted-foreground uppercase leading-none">
+                Itens
               </p>
             </div>
           </div>
           
-          <div className="flex gap-4">
+          {/* Botões de Ação */}
+          <div className="flex flex-1 sm:flex-none gap-2 sm:gap-4">
             <Button 
               disabled={isProcessing}
               onClick={() => handleBatchAction("approve")} 
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-2xl flex gap-3 h-12 px-8 text-xs uppercase tracking-widest shadow-lg shadow-primary/20 transition-all active:scale-95"
+              className="flex-1 sm:flex-none bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-xl sm:rounded-2xl flex gap-2 h-10 sm:h-12 px-4 sm:px-8 text-[10px] sm:text-xs uppercase tracking-widest transition-all active:scale-95"
             >
-              <CheckCircle2 className="h-4 w-4" /> Aprovar
+              <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> 
+              <span>Aprovar</span>
             </Button>
             <Button 
               disabled={isProcessing}
               onClick={() => handleBatchAction("remove")} 
               variant="ghost"
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive font-black rounded-2xl flex gap-3 h-12 px-6 text-xs uppercase tracking-widest transition-all active:scale-95"
+              className="sm:flex-none text-destructive hover:bg-destructive/10 font-black rounded-xl sm:rounded-2xl flex gap-2 h-10 sm:h-12 px-3 sm:px-6 text-[10px] sm:text-xs uppercase tracking-widest transition-all"
             >
-              <Trash2 className="h-4 w-4" /> Recusar
+              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden xs:inline">Recusar</span>
             </Button>
           </div>
         </div>
