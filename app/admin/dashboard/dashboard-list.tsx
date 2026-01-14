@@ -189,7 +189,7 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
               className="flex-1 md:flex-none bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-xl flex items-center justify-center gap-2 h-10 md:h-12 px-3 md:px-8 text-[10px] md:text-xs uppercase tracking-[0.2em] shadow-lg shadow-primary/20 transition-all active:scale-95 whitespace-nowrap"
             >
               <CheckCircle2 className="h-4 w-4 flex-shrink-0" /> 
-              <span>Aprovar Todos</span>
+              <span>Aprovar</span>
             </Button>
             <Button 
               disabled={isProcessing}
