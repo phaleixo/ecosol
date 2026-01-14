@@ -32,11 +32,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import Swal from 'sweetalert2';
 
-// --- Importação da Central de Estilo e Notificações Padronizada ---
-import { swalConfig } from "@/lib/swal";
-import { notify } from "@/lib/toast";
+// --- Importação CORRETA da Central de Estilo e Notificações Padronizada ---
+import { confirmDestructiveAction, showLoading, notify } from "@/lib/swal"; // <-- NOTIFY AGORA VEM DO SWAL.TS
 import { SERVICE_CATEGORIES } from "@/src/constants/categories";
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -109,14 +107,8 @@ export default function EditServiceForm({ service }: { service: any }) {
     setLoading(true);
     setError("");
 
-    // 1. Modal de Sincronização Neon Centralizado
-    Swal.fire({
-      ...swalConfig,
-      title: 'Sincronizando...',
-      text: 'Salvando as novas informações do negócio.',
-      didOpen: () => { Swal.showLoading(); },
-      allowOutsideClick: false,
-    });
+    // 1. Modal de Sincronização usando a nova função
+    showLoading('Sincronizando...');
     
     try {
       const normalizedData = {
@@ -126,7 +118,7 @@ export default function EditServiceForm({ service }: { service: any }) {
 
       const result = await updateServiceAction(service.id, normalizedData);
       
-      // 2. GESTOR AUTOMÁTICO: Fecha Swal e dispara Toast Neon
+      // 2. GESTOR AUTOMÁTICO: Fecha Swal e dispara Toast
       notify.auto(result.success, 'Alterações salvas com sucesso!', 'Não foi possível salvar as alterações.');
 
       if (result.success) {
@@ -144,32 +136,19 @@ export default function EditServiceForm({ service }: { service: any }) {
   }
 
   async function handleDelete() {
-    // 3. Confirmação Neon com Botão Destrutivo Simétrico (Não Chapado)
-    const result = await Swal.fire({
-      ...swalConfig,
-      title: 'Tem certeza?',
-      text: "Deseja excluir permanentemente este cadastro? Esta ação é irreversível.",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Sim, excluir permanentemente',
-      customClass: {
-        ...swalConfig.customClass,
-        confirmButton: swalConfig.customClass.confirmButton
-          .replace('bg-primary', 'bg-destructive')
-          .replace('shadow-primary/30', 'shadow-destructive/30')
-      }
-    });
+    // 3. Confirmação usando a função específica para ações destrutivas
+    const result = await confirmDestructiveAction(
+      'Tem certeza?',
+      'Deseja excluir permanentemente este cadastro? Esta ação é irreversível.',
+      'Sim, excluir permanentemente'
+    );
 
     if (result.isConfirmed) {
       setIsDeleting(true);
       setError("");
       
-      Swal.fire({
-        ...swalConfig,
-        title: 'Excluindo...',
-        didOpen: () => { Swal.showLoading(); },
-        allowOutsideClick: false,
-      });
+      // Modal de carregamento
+      showLoading('Excluindo...');
 
       try {
         const resultAction = await deleteServiceAction(service.id);
@@ -319,7 +298,7 @@ export default function EditServiceForm({ service }: { service: any }) {
         </div>
       </div>
 
-      {/* --- Ações Inferiores: Mantendo sua estrutura de layout --- */}
+      {/* --- Ações Inferiores --- */}
       <div className="pt-8 flex flex-col gap-4 border-t border-border">
         <div className="flex gap-4">
           <Button type="button" variant="ghost" onClick={() => router.back()} className="flex-1 h-16 rounded-[2rem] font-bold text-muted-foreground hover:bg-muted" disabled={loading || isDeleting}>Cancelar</Button>
