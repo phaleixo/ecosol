@@ -31,11 +31,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import Swal from "sweetalert2";
 
 // --- Importação da Logística de Estilo e Notificações Padronizada ---
-import { swalConfig } from "@/lib/swal";
-import { notify, Toast } from "@/lib/toast";
+import { showLoading, notify, Toast } from "@/lib/swal";
 import { SERVICE_CATEGORIES } from "@/constants/categories";
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -138,15 +136,7 @@ export default function SubmitPage() {
     setIsSubmitting(true);
 
     // 1. Modal de Sincronização Neon Centralizado
-    Swal.fire({
-      ...swalConfig,
-      title: "Sincronizando...",
-      text: "Enviando seu negócio para análise da curadoria.",
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      },
-    });
+    const loadingSwal = showLoading("Sincronizando...");
 
     try {
       let imageUrl = "";
@@ -211,7 +201,6 @@ export default function SubmitPage() {
           </header>
 
           <form onSubmit={submit} className="space-y-8">
-            {/* JSX de Formulário Integralmente Preservado */}
             <div className="space-y-3">
               <label className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
                 Logo ou Foto do Negócio

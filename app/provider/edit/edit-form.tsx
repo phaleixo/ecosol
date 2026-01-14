@@ -35,11 +35,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import Swal from "sweetalert2";
 
 // --- Importação da Central de Estilo e Notificações Padronizada ---
-import { swalConfig } from "@/lib/swal";
-import { notify } from "@/lib/toast";
+import { showLoading, notify, confirmDestructiveAction } from "@/lib/swal";
 import { SERVICE_CATEGORIES } from "@/constants/categories";
 
 const InstagramIcon = ({ className }: { className?: string }) => (
@@ -146,15 +144,7 @@ export default function EditServiceForm({ service }: { service: Service }) {
     setError("");
 
     // 1. Modal de Sincronização Neon Centralizado
-    Swal.fire({
-      ...swalConfig,
-      title: "Sincronizando...",
-      text: "Salvando as novas informações do negócio.",
-      didOpen: () => {
-        Swal.showLoading();
-      },
-      allowOutsideClick: false,
-    });
+    const loadingSwal = showLoading("Sincronizando...");
 
     try {
       const normalizedData = {
@@ -188,33 +178,18 @@ export default function EditServiceForm({ service }: { service: Service }) {
 
   async function handleDelete() {
     // 3. Confirmação Neon com Botão Destrutivo Simétrico (Não Chapado)
-    const result = await Swal.fire({
-      ...swalConfig,
-      title: "Tem certeza?",
-      text: "Deseja excluir permanentemente este cadastro? Esta ação é irreversível.",
-      icon: "warning",
-      showCancelButton: true,
-      confirmButtonText: "Sim, excluir permanentemente",
-      customClass: {
-        ...swalConfig.customClass,
-        confirmButton: swalConfig.customClass.confirmButton
-          .replace("bg-primary", "bg-destructive")
-          .replace("shadow-primary/30", "shadow-destructive/30"),
-      },
-    });
+    const result = await confirmDestructiveAction(
+      "Tem certeza?",
+      "Deseja excluir permanentemente este cadastro? Esta ação é irreversível.",
+      "Sim, excluir permanentemente",
+      "Cancelar"
+    );
 
     if (result.isConfirmed) {
       setIsDeleting(true);
       setError("");
 
-      Swal.fire({
-        ...swalConfig,
-        title: "Excluindo...",
-        didOpen: () => {
-          Swal.showLoading();
-        },
-        allowOutsideClick: false,
-      });
+      const loadingSwal = showLoading("Excluindo...");
 
       try {
         const resultAction = await deleteServiceAction(Number(service.id));
@@ -250,7 +225,6 @@ export default function EditServiceForm({ service }: { service: Service }) {
         </div>
       )}
 
-      {/* --- JSX INTEGRAL: Mantendo cada detalhe do seu design original --- */}
       <div className="space-y-3">
         <label className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
           Logo ou Foto do Negócio
@@ -403,7 +377,6 @@ export default function EditServiceForm({ service }: { service: Service }) {
           />
         </div>
 
-        {/* --- Redes Sociais com seus ícones customizados --- */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60 ml-1">
@@ -466,7 +439,6 @@ export default function EditServiceForm({ service }: { service: Service }) {
         </div>
       </div>
 
-      {/* --- Ações Inferiores --- */}
       <div className="pt-8 flex flex-col gap-4 border-t border-border">
         <div className="flex gap-4">
           <Button
