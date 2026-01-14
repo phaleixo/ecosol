@@ -17,7 +17,8 @@ import {
   ChevronDown,
   Sun,
   Moon,
-  Loader2
+  Loader2,
+  ShieldCheck // Adicionado para a flag de Termos
 } from "lucide-react";
 
 type ModalNotification = { 
@@ -42,7 +43,7 @@ export default function Header() {
 
   const menuRef = React.useRef<HTMLDivElement>(null);
 
-  // 1. HIDRATAÇÃO (Evita erro de mismatch entre servidor e cliente)
+  // 1. HIDRATAÇÃO
   React.useEffect(() => setMounted(true), []);
 
   // 2. FECHAMENTO DE MENU (Click Outside)
@@ -57,19 +58,18 @@ export default function Header() {
   }, []);
 
   /**
-   * 3. LOGÍSTICA DE DADOS (Admin & User)
+   * 3. LOGÍSTICA DE DADOS
    */
   const loadAdminData = React.useCallback(async () => {
     setIsLoadingCount(true);
     try {
-      // Timestamp para evitar cache e garantir dado real
       const res = await fetch(`/api/admin/count?t=${Date.now()}`);
       if (res.ok) {
         const { count } = await res.json();
         setPendingCount(count);
       }
     } catch (err) { 
-      console.error("Erro na contagem de pendentes:", err); 
+      console.error("Erro na contagem:", err); 
     } finally {
       setIsLoadingCount(false);
     }
@@ -92,13 +92,12 @@ export default function Header() {
         setNotifications(await notifyRes.json());
       }
     } catch (err) { 
-      console.error("Erro no fetch de dados do usuário:", err); 
+      console.error("Erro data fetch:", err); 
     }
   }, [loadAdminData]);
 
   /**
    * 4. AUTH & REALTIME SYNC
-   * Configuração para escutar mudanças no banco de dados instantaneamente
    */
   React.useEffect(() => {
     const initAuth = async () => {
@@ -110,16 +109,12 @@ export default function Header() {
     };
     initAuth();
 
-    // CANAL REALTIME: Escuta a tabela 'services' para atualizar o contador
     const channel = supabase
       .channel('header-stats-sync')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'services' },
-        () => {
-          // Se houver qualquer mudança (insert/update/delete), recontamos
-          loadAdminData();
-        }
+        () => loadAdminData()
       )
       .subscribe();
 
@@ -148,7 +143,6 @@ export default function Header() {
 
   const hasUnread = notifications.some((n: ModalNotification) => !n.read);
 
-  // Renderização de segurança para o tema
   if (!mounted) return <div className="h-14 w-full border-b bg-background" />;
 
   return (
@@ -167,7 +161,6 @@ export default function Header() {
             </div>
           </Link>
 
-          {/* NAVIGATION & USER ACTIONS */}
           <nav className="flex items-center gap-1.5 sm:gap-4">
             {!user ? (
               <div className="flex items-center gap-2 sm:gap-3">
@@ -186,7 +179,7 @@ export default function Header() {
             ) : (
               <div className="flex items-center gap-1.5 sm:gap-3">
                 
-                {/* ADMIN DASHBOARD BUTTON & BADGE */}
+                {/* ADMIN DASHBOARD */}
                 {role === "ADMIN" && (
                   <Link href="/admin/dashboard" className="relative group">
                     <Button variant="outline" className="border-primary/20 text-primary font-black h-9 px-2 sm:px-4 rounded-xl flex items-center gap-2 bg-transparent hover:bg-primary/5 transition-all">
@@ -196,8 +189,6 @@ export default function Header() {
                         <span className="hidden sm:inline">Painel Admin</span>
                       </span>
                     </Button>
-                    
-                    {/* CONTADOR REAL-TIME */}
                     {pendingCount > 0 && (
                       <div className="absolute -top-1.5 -right-1.5 bg-destructive text-white text-[10px] font-black h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center ring-2 ring-background animate-in zoom-in duration-300 shadow-lg">
                         {isLoadingCount ? <Loader2 size={10} className="animate-spin" /> : (pendingCount > 99 ? '99+' : pendingCount)}
@@ -217,11 +208,8 @@ export default function Header() {
                   </Button>
                 </Link>
 
-                {/* NOTIFICATIONS BELL */}
-                <button 
-                  onClick={() => setIsModalOpen(true)}
-                  className="relative p-2 text-muted-foreground hover:text-primary transition-colors"
-                >
+                {/* NOTIFICATIONS */}
+                <button onClick={() => setIsModalOpen(true)} className="relative p-2 text-muted-foreground hover:text-primary transition-colors">
                   <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
                   {hasUnread && (
                     <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background animate-pulse"></span>
@@ -230,10 +218,7 @@ export default function Header() {
 
                 {/* USER PROFILE MENU */}
                 <div className="relative" ref={menuRef}>
-                  <button 
-                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-1 p-0.5 pr-1 sm:pr-2 rounded-full border border-border hover:bg-muted transition-all shadow-sm"
-                  >
+                  <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="flex items-center gap-1 p-0.5 pr-1 sm:pr-2 rounded-full border border-border hover:bg-muted transition-all shadow-sm">
                     <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-xs font-black uppercase shadow-inner">
                       {user.email?.[0]}
                     </div>
@@ -247,29 +232,29 @@ export default function Header() {
                         <p className="text-xs font-bold text-foreground truncate">{user.email}</p>
                       </div>
 
-                      {/* THEME TOGGLE (Inside Menu) */}
+                      {/* THEME TOGGLE */}
                       <div className="px-3 py-2 border-b border-border">
                         <div className="flex items-center justify-between bg-muted/50 p-1 rounded-xl">
-                          <button 
-                            onClick={() => setTheme("light")}
-                            className={`flex-1 flex justify-center py-1.5 rounded-lg transition-all ${theme === 'light' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                          >
+                          <button onClick={() => setTheme("light")} className={`flex-1 flex justify-center py-1.5 rounded-lg transition-all ${theme === 'light' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
                             <Sun size={14} />
                           </button>
-                          <button 
-                            onClick={() => setTheme("dark")}
-                            className={`flex-1 flex justify-center py-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                          >
+                          <button onClick={() => setTheme("dark")} className={`flex-1 flex justify-center py-1.5 rounded-lg transition-all ${theme === 'dark' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
                             <Moon size={14} />
                           </button>
                         </div>
                       </div>
 
-                      {/* MENU LINKS */}
+                      {/* MENU LINKS INTEGRADOS */}
                       <div className="p-1.5 space-y-1">
                         <Link href="/profile" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
                           <UserIcon className="h-4 w-4" /> Perfil da Conta
                         </Link>
+
+                        {/* FLAG DE TERMOS DE USO - ADICIONADO AQUI */}
+                        <Link href="/terms" onClick={() => setIsUserMenuOpen(false)} className="flex items-center gap-3 px-3 py-2 text-xs font-black uppercase tracking-widest text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-xl transition-all">
+                          <ShieldCheck className="h-4 w-4" /> Termos de Uso
+                        </Link>
+
                         <button onClick={handleLogout} className="w-full flex items-center gap-3 px-3 py-2 text-xs font-black uppercase tracking-widest text-destructive hover:bg-destructive/10 rounded-xl transition-all">
                           <LogOut className="h-4 w-4" /> Encerrar Sessão
                         </button>
@@ -283,7 +268,6 @@ export default function Header() {
         </div>
       </header>
 
-      {/* NOTIFICATION MODAL */}
       <NotificationModal 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
