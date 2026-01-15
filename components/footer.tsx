@@ -55,7 +55,7 @@ const CONFIG = {
   social: {
     instagram: "",
     linkedin: "",
-    github: "", // "https://github.com/EcoSolTEA/ecosol",
+    github: "", 
     facebook: "",
     youtube: "",
     twitter: "",
@@ -76,8 +76,8 @@ const ContactCard = ({ contact, message }: { contact: Contact; message: string }
       <div className="flex items-center gap-2">
         <MessageCircle size={12} className="text-primary" />
         <div>
-          <span className="text-[9px] font-black uppercase tracking-tight block">{contact.name}</span>
-          <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter block">Solicitar Link</span>
+          <span className="text-[9px] font-black uppercase tracking-tight block leading-none">{contact.name}</span>
+          <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter block mt-0.5">Solicitar Link</span>
         </div>
       </div>
       <ArrowRight size={10} className="text-primary opacity-0 group-hover:translate-x-1 group-hover:opacity-100 transition-all" />
@@ -99,7 +99,7 @@ const TeamMember = ({ member }: { member: Creator }) => {
         <Icon size={11} />
       </div>
       <div className="flex-1">
-        <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-primary transition-colors block">{member.name}</span>
+        <span className="text-[10px] font-black uppercase tracking-widest group-hover:text-primary transition-colors block leading-tight">{member.name}</span>
         <span className="text-[8px] text-muted-foreground font-bold uppercase tracking-tighter block">{member.role}</span>
       </div>
     </a>
@@ -130,9 +130,9 @@ export default function Footer() {
     <footer className="w-full border-t bg-card text-card-foreground">
       <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6">
         
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 items-start">
           
-          <div className="md:col-span-2 space-y-3">
+          <div className="col-span-2 md:col-span-2 space-y-3">
             <div className="flex items-center gap-2">
               <div className="relative h-7 w-7 rounded-full border overflow-hidden">
                 <Image 
@@ -146,21 +146,22 @@ export default function Footer() {
               <span className="font-black text-base uppercase tracking-tight">{platform.name}</span>
             </div>
             
-            <p className="text-[10px] leading-relaxed text-muted-foreground font-bold uppercase tracking-wider max-w-[400px]">
+            <p className="text-[10px] leading-relaxed text-muted-foreground font-bold uppercase tracking-wider max-w-[400px] text-justify">
               {platform.description}
             </p>
 
-            <div className="flex flex-wrap gap-2">
-              <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-primary">
-                <Rocket size={11} />
+            {/* Ajuste: max-w-[400px] e justify-between para alinhar com o fim do texto */}
+            <div className="flex flex-nowrap items-center justify-between gap-1 sm:gap-3 max-w-[400px] w-full overflow-hidden">
+              <div className="flex items-center gap-1 sm:gap-1.5 text-[7px] min-[400px]:text-[8px] sm:text-[9px] font-black uppercase tracking-tight sm:tracking-wider text-primary whitespace-nowrap shrink">
+                <Rocket size={11} className="shrink-0" />
                 <span>Inovação Social</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-primary">
-                <Network size={11} />
+              <div className="flex items-center gap-1 sm:gap-1.5 text-[7px] min-[400px]:text-[8px] sm:text-[9px] font-black uppercase tracking-tight sm:tracking-wider text-primary whitespace-nowrap shrink">
+                <Network size={11} className="shrink-0" />
                 <span>Rede Colaborativa</span>
               </div>
-              <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-wider text-primary">
-                <Target size={11} />
+              <div className="flex items-center gap-1 sm:gap-1.5 text-[7px] min-[400px]:text-[8px] sm:text-[9px] font-black uppercase tracking-tight sm:tracking-wider text-primary whitespace-nowrap shrink">
+                <Target size={11} className="shrink-0" />
                 <span>Impacto Real</span>
               </div>
             </div>
@@ -181,18 +182,18 @@ export default function Footer() {
             )}
           </div>
 
-          <div className="md:col-span-1 space-y-2">
-            <h3 className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/60 border-b pb-1 pl-2 text-center whitespace-nowrap">
+          <div className="col-span-1 md:col-span-1 space-y-2">
+            <h3 className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/60 border-b pb-1 text-center whitespace-nowrap">
               Corpo Técnico
             </h3>
-            <div className="flex flex-col gap-1 pl-10">
+            <div className="flex flex-col gap-1 md:pl-10">
               {team.map((member) => (
                 <TeamMember key={member.name} member={member} />
               ))}
             </div>
           </div>
 
-          <div className="md:col-span-1 bg-muted/30 border rounded-[1.5rem] p-2 flex flex-col items-center justify-start w-full max-w-[180px] mx-auto">
+          <div className="col-span-1 md:col-span-1 bg-muted/30 border rounded-[1.5rem] p-2 flex flex-col items-center justify-start w-full mx-auto">
             <h3 className="text-[9px] font-black uppercase tracking-[0.4em] text-muted-foreground/60 mb-1 border-b border-border/50 pb-1 w-full text-center">
               Comunidade
             </h3>
@@ -200,9 +201,9 @@ export default function Footer() {
               {contacts.map((contact) => (
                 <ContactCard key={contact.phone} contact={contact} message={waMessage} />
               ))}
-              <div className="text-center w-full">
-                <span className="text-[8px] font-bold text-muted-foreground/60 uppercase tracking-wider">
-                  Resposta em até 24h
+              <div className="text-center w-full mt-1">
+                <span className="text-[8px] font-bold text-muted-foreground/60 uppercase tracking-wider leading-none">
+                  Até 24h
                 </span>
               </div>
             </div>
@@ -211,13 +212,13 @@ export default function Footer() {
 
         <div className="mt-6 pt-4 border-t flex flex-col md:grid md:grid-cols-4 items-center gap-3">
           <div className="md:col-span-3 flex flex-col md:flex-row items-center gap-3 md:gap-8 justify-start w-full">
-            <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-[0.4em]">
+            <p className="text-[9px] font-bold text-muted-foreground/40 uppercase tracking-tight md:tracking-[0.4em] whitespace-nowrap">
               {platform.copyright}
             </p>
             
             <Link 
               href={platform.termsUrl}
-              className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/70 transition-colors"
+              className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-primary hover:text-primary/70 transition-colors leading-none"
             >
               <ShieldCheck size={11} />
               Termos de Uso & LGPD
@@ -225,8 +226,8 @@ export default function Footer() {
           </div>
 
           <div className="md:col-span-1 flex justify-center md:justify-end w-full">
-            <div className="px-2.5 py-0.5 rounded-full bg-primary/5 border border-primary/10">
-              <span className="text-[9px] font-black text-primary uppercase tracking-widest">
+            <div className="flex items-center justify-center px-2.5 h-6 rounded-full bg-primary/5 border border-primary/10">
+              <span className="text-[9px] font-black text-primary uppercase tracking-widest leading-none">
                 {platform.version}
               </span>
             </div>
