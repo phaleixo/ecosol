@@ -37,6 +37,11 @@ model User {
   createdAt     DateTime       @default(now())
   phone         String?
   notifications Notification[]
+  
+// --- CAMPOS DE COMPLIANCE LGPD ---
+  acceptedTerms Boolean        @default(false)
+  termsVersion  String?        // Versão aceita (ex: "1.0.2")
+  acceptedAt    DateTime?      // Timestamp do momento do aceite
 }
 
 model Notification {

@@ -18,7 +18,8 @@ import {
   AlertCircle,
   UserCircle2,
   KeyRound,
-  ArrowLeft
+  ArrowLeft,
+  ShieldCheck
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -27,9 +28,13 @@ export default function LoginPage() {
   const [loading, setLoading] = React.useState(false);
   const [isResetting, setIsResetting] = React.useState(false);
   const [message, setMessage] = React.useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [mounted, setMounted] = React.useState(false);
   
   const router = useRouter();
   const { theme, setTheme } = useTheme();
+
+  // Previne erro de hidratação no seletor de tema
+  React.useEffect(() => setMounted(true), []);
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault();
@@ -61,6 +66,8 @@ export default function LoginPage() {
     } catch (err) {
       console.error("Erro na busca de role:", err);
       router.push("/");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -82,47 +89,47 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4 transition-colors duration-500">
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-2 transition-colors duration-500">
       
-      {/* Botão de Tema Flutuante */}
+      {/* Botão de Tema Flutuante Otimizado */}
       <button
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="fixed top-6 right-6 p-3 bg-card border border-border rounded-2xl shadow-lg hover:scale-110 active:scale-95 transition-all text-primary"
+        className="fixed top-4 right-4 p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-muted transition-all text-primary z-50"
       >
-        {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+        {mounted && (theme === "dark" ? <Sun size={18} /> : <Moon size={18} />)}
       </button>
 
-      <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-card p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-border">
+      <div className="w-full max-w-[380px] animate-in fade-in zoom-in-95 duration-500">
+        <div className="bg-card p-6 md:p-8 rounded-[2rem] shadow-xl border border-border relative overflow-hidden">
           
-          {/* Cabeçalho de Identidade */}
-          <div className="text-center mb-10">
-            <div className="inline-flex p-4 bg-primary/10 rounded-3xl mb-5 text-primary">
-               {isResetting ? <KeyRound size={32} /> : <UserCircle2 size={32} />}
+          {/* Cabeçalho de Identidade Reduzido */}
+          <div className="text-center mb-6">
+            <div className="inline-flex p-3 bg-primary/5 rounded-2xl mb-3 text-primary border border-primary/10 shadow-inner">
+               {isResetting ? <KeyRound size={24} /> : <UserCircle2 size={24} />}
             </div>
-            <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
+            <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">
               {isResetting ? "Recuperar" : "Bem-vindo"}
             </h1>
-            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em] mt-3">
+            <p className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] mt-2">
               {isResetting ? "Redefinição de Acesso" : "Rede Ecosol Autista"}
             </p>
           </div>
 
-          {/* Mensagens de Feedback */}
+          {/* Mensagens de Feedback Semântico */}
           {message && (
-            <div className={`mb-8 p-4 rounded-2xl text-[11px] font-black uppercase tracking-widest border flex items-center gap-3 animate-in slide-in-from-top-2 ${
+            <div className={`mb-4 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 animate-in slide-in-from-top-2 ${
               message.type === 'success' 
-                ? 'bg-primary/10 border-primary/20 text-primary' 
-                : 'bg-destructive/10 border-destructive/20 text-destructive'
+                ? 'bg-primary/5 border-primary/20 text-primary' 
+                : 'bg-destructive/5 border-destructive/20 text-destructive'
             }`}>
-              {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-              {message.text}
+              {message.type === 'success' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+              <span className="leading-tight text-center">{message.text}</span>
             </div>
           )}
 
-          <form onSubmit={isResetting ? handleForgotPassword : handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] ml-1">E-mail de Acesso</label>
+          <form onSubmit={isResetting ? handleForgotPassword : handleLogin} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest ml-1">E-mail de Acesso</label>
               <div className="relative">
                 <Input 
                   type="email" 
@@ -130,20 +137,20 @@ export default function LoginPage() {
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
                   placeholder="seu@email.com"
-                  className="h-14 pl-12 rounded-2xl bg-muted/30 border-border focus:bg-background font-bold transition-all"
+                  className="h-11 pl-10 rounded-xl bg-muted/20 border-border focus:bg-background font-bold text-sm transition-all focus:ring-1 ring-primary/30"
                 />
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30" size={18} />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/30" size={16} />
               </div>
             </div>
 
             {!isResetting && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex justify-between items-center px-1">
-                  <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em]">Senha</label>
+                  <label className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest">Senha</label>
                   <button 
                     type="button"
                     onClick={() => { setIsResetting(true); setMessage(null); }}
-                    className="text-[10px] font-black text-primary hover:opacity-70 uppercase tracking-widest transition-all"
+                    className="text-[9px] font-black text-primary hover:opacity-70 uppercase tracking-widest transition-all"
                   >
                     Esqueceu?
                   </button>
@@ -155,26 +162,26 @@ export default function LoginPage() {
                     value={password} 
                     onChange={(e) => setPassword(e.target.value)} 
                     placeholder="••••••••"
-                    className="h-14 pl-12 rounded-2xl bg-muted/30 border-border focus:bg-background font-bold transition-all"
+                    className="h-11 pl-10 rounded-xl bg-muted/20 border-border focus:bg-background font-bold text-sm transition-all focus:ring-1 ring-primary/30"
                   />
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30" size={18} />
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/30" size={16} />
                 </div>
               </div>
             )}
 
             <Button 
               type="submit" 
-              className="w-full h-16 rounded-4xl font-black text-lg shadow-lg shadow-primary/20 gap-3 transition-all active:scale-[0.98]" 
+              className="w-full h-12 rounded-2xl font-black text-sm shadow-md hover:shadow-primary/10 gap-2 transition-all active:scale-[0.98]" 
               disabled={loading}
             >
-              {loading ? <Loader2 className="animate-spin" /> : <ArrowRight size={20} />}
-              {loading ? "Processando..." : (isResetting ? "Enviar Link" : "Entrar na Rede")}
+              {loading ? <Loader2 className="animate-spin" size={16} /> : (isResetting ? <ShieldCheck size={18} /> : <ArrowRight size={18} />)}
+              {loading ? "PROCESSANDO..." : (isResetting ? "ENVIAR LINK" : "ENTRAR NA REDE")}
             </Button>
 
             {isResetting && (
               <button 
                 type="button" 
-                className="w-full flex items-center justify-center gap-2 text-[10px] font-black text-muted-foreground hover:text-foreground uppercase tracking-widest transition-all mt-4"
+                className="w-full flex items-center justify-center gap-2 text-[9px] font-black text-muted-foreground hover:text-foreground uppercase tracking-widest transition-all mt-1"
                 onClick={() => { setIsResetting(false); setMessage(null); }}
               >
                 <ArrowLeft size={12} /> Voltar ao Login
@@ -183,20 +190,20 @@ export default function LoginPage() {
           </form>
 
           {!isResetting && (
-            <div className="mt-10 text-center border-t border-border pt-8">
-              <p className="text-xs text-muted-foreground font-medium">
+            <div className="mt-6 text-center border-t border-border pt-4">
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">
                 Ainda não faz parte?{" "}
-                <Link href="/signup" className="text-primary font-black hover:underline underline-offset-4">
-                  Criar minha conta
+                <Link href="/signup" className="text-primary font-black hover:underline ml-1">
+                  Criar conta agora
                 </Link>
               </p>
             </div>
           )}
         </div>
         
-        {/* Footer de Segurança */}
-        <p className="text-center mt-8 text-[9px] text-muted-foreground/30 font-black uppercase tracking-[0.4em]">
-          Ambiente Seguro Ecosol &bull; 2026
+        {/* Footer de Engenharia Compacto */}
+        <p className="text-center mt-6 text-[8px] text-muted-foreground/30 font-black uppercase tracking-[0.4em]">
+          Acesso Protegido &bull; Ecosol 2026
         </p>
       </div>
     </div>

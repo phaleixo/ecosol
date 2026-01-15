@@ -15,7 +15,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Detecta a URL base usando suas variáveis existentes
+const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || "http://localhost:3000";
+
 export const metadata: Metadata = {
+  // Define a base para resolver imagens de redes sociais
+  metadataBase: new URL(baseUrl),
+
   title: {
     default: "ECOSOL Autista | Economia Solidária e Empreendedorismo TEA",
     template: "%s | ECOSOL Autista",

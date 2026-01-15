@@ -23,22 +23,20 @@ import {
 export default function SignupPage() {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
-  const [acceptedTerms, setAcceptedTerms] = React.useState(false); // Flag de Consentimento
+  const [acceptedTerms, setAcceptedTerms] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
   const [message, setMessage] = React.useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [mounted, setMounted] = React.useState(false);
   
   const { theme, setTheme } = useTheme();
 
-  // Previne erro de hidratação no seletor de tema
   React.useEffect(() => setMounted(true), []);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
 
-    // 1. Validação de Engenharia (Compliance)
     if (!acceptedTerms) {
-      setMessage({ type: 'error', text: "Você precisa aceitar os termos de uso para continuar." });
+      setMessage({ type: 'error', text: "O aceite dos termos é obrigatório." });
       return;
     }
 
@@ -47,8 +45,8 @@ export default function SignupPage() {
 
     try {
       /**
-       * 2. Cadastro no Supabase Auth
-       * Incluímos o consentimento nos metadados para registro jurídico (LGPD)
+       * REGISTRO JURÍDICO (LGPD):
+       * Armazenamos a versão dos termos e o Timestamp nos metadados do Supabase
        */
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -58,6 +56,7 @@ export default function SignupPage() {
           data: { 
             display_name: email.split('@')[0],
             accepted_terms: true,
+            terms_version: "1.0.2",
             accepted_at: new Date().toISOString()
           } 
         }
@@ -70,17 +69,20 @@ export default function SignupPage() {
       }
 
       if (data.user) {
-        // 3. Sincronização em Background com o Prisma
+        // Sincronização com Banco de Dados via Prisma (Route Handler)
         fetch("/api/user/create", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email: data.user.email }),
+          body: JSON.stringify({ 
+            email: data.user.email,
+            name: email.split('@')[0],
+            termsVersion: "1.0.2"
+          }),
         }).catch(err => console.error("Erro na sincronização Prisma:", err));
 
-        // 4. Reporte Imediato ao Usuário
         setMessage({ 
           type: 'success', 
-          text: "Sucesso! Enviamos um link de confirmação para o seu e-mail. Verifique sua caixa de entrada e o spam." 
+          text: "Protocolo enviado! Verifique seu e-mail para confirmar." 
         });
 
         setEmail("");
@@ -88,70 +90,66 @@ export default function SignupPage() {
         setAcceptedTerms(false);
       }
     } catch (err) {
-      console.error(err);
-      setMessage({ type: 'error', text: "Erro inesperado no processamento da carga." });
+      setMessage({ type: 'error', text: "Falha crítica no processamento." });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-4 transition-colors duration-500">
+    <div className="min-h-screen flex items-center justify-center bg-background text-foreground p-2 transition-colors duration-500">
       
-      {/* Botão de Tema Flutuante */}
       <button
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="fixed top-6 right-6 p-3 bg-card border border-border rounded-2xl shadow-lg hover:scale-110 active:scale-95 transition-all text-primary"
+        className="fixed top-4 right-4 p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-muted transition-all text-primary z-50"
       >
-        {mounted && (theme === "dark" ? <Sun size={20} /> : <Moon size={20} />)}
+        {mounted && (theme === "dark" ? <Sun size={18} /> : <Moon size={18} />)}
       </button>
 
-      <div className="w-full max-w-md animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-card p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-border">
+      <div className="w-full max-w-[380px] animate-in fade-in zoom-in-95 duration-500">
+        <div className="bg-card p-6 md:p-8 rounded-[2rem] shadow-xl border border-border relative overflow-hidden">
           
-          {/* Cabeçalho de Identidade */}
-          <div className="text-center mb-10">
-            <div className="inline-flex p-4 bg-primary/10 rounded-3xl mb-5 text-primary">
-               <UserPlus size={32} />
+          <div className="text-center mb-6">
+            <div className="inline-flex p-3 bg-primary/5 rounded-2xl mb-3 text-primary border border-primary/10 shadow-inner">
+               <UserPlus size={24} />
             </div>
-            <h1 className="text-3xl font-black tracking-tighter uppercase leading-none">
-              Criar Conta
+            <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">
+              Novo Cadastro
             </h1>
-            <p className="text-muted-foreground text-[10px] font-black uppercase tracking-[0.3em] mt-3">
-              Junte-se à Rede Ecosol
+            <p className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] mt-2">
+              Sistema de Autonomia Neurodivergente
             </p>
           </div>
 
-          {/* Mensagens de Feedback Semântico */}
           {message && (
-            <div className={`mb-8 p-4 rounded-2xl text-[11px] font-black uppercase tracking-widest border flex items-center gap-3 animate-in slide-in-from-top-2 ${
+            <div className={`mb-4 p-3 rounded-xl text-[10px] font-black uppercase tracking-widest border flex items-center gap-2 animate-in slide-in-from-top-2 ${
               message.type === 'success' 
-                ? 'bg-primary/10 border-primary/20 text-primary' 
-                : 'bg-destructive/10 border-destructive/20 text-destructive'
+                ? 'bg-primary/5 border-primary/20 text-primary' 
+                : 'bg-destructive/5 border-destructive/20 text-destructive'
             }`}>
-              {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertCircle size={16} />}
-              <span className="leading-tight">{message.text}</span>
+              {message.type === 'success' ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />}
+              <span className="leading-tight text-center">{message.text}</span>
             </div>
           )}
 
-          <form onSubmit={handleSignup} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] ml-1">E-mail Corporativo ou Pessoal</label>
+          <form onSubmit={handleSignup} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest ml-1">E-mail de Cadastro</label>
               <div className="relative">
                 <Input 
                   type="email" 
                   required 
                   value={email} 
                   onChange={(e) => setEmail(e.target.value)} 
-                  placeholder="seu@email.com"
-                  className="h-14 pl-12 rounded-2xl bg-muted/30 border-border focus:bg-background font-bold transition-all"
+                  placeholder="usuario@ecosol.com"
+                  className="h-11 pl-10 rounded-xl bg-muted/20 border-border focus:bg-background font-bold text-sm transition-all focus:ring-1 ring-primary/30"
                 />
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30" size={18} />
+                <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/30" size={16} />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-muted-foreground/60 uppercase tracking-[0.2em] ml-1">Senha (Mín. 6 dígitos)</label>
+            <div className="space-y-1.5">
+              <label className="text-[9px] font-black text-muted-foreground/60 uppercase tracking-widest ml-1">Senha de Acesso</label>
               <div className="relative">
                 <Input 
                   type="password" 
@@ -159,56 +157,56 @@ export default function SignupPage() {
                   value={password} 
                   onChange={(e) => setPassword(e.target.value)} 
                   placeholder="••••••••"
-                  className="h-14 pl-12 rounded-2xl bg-muted/30 border-border focus:bg-background font-bold transition-all"
+                  className="h-11 pl-10 rounded-xl bg-muted/20 border-border focus:bg-background font-bold text-sm transition-all focus:ring-1 ring-primary/30"
                 />
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground/30" size={18} />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground/30" size={16} />
               </div>
             </div>
 
-            {/* CHECKBOX DE TERMOS - DESIGN PREMIUM */}
+            {/* CHECKBOX LGPD */}
             <div 
-              className="flex items-start gap-3 px-1 py-2 group cursor-pointer"
-              onClick={() => setAcceptedTerms(!acceptedTerms)}
+              className="flex items-center gap-3 px-1 py-1 group cursor-pointer"
+              onClick={() => {
+                setAcceptedTerms(!acceptedTerms);
+                if(message?.type === 'error') setMessage(null);
+              }}
             >
-              <div className={`mt-0.5 h-5 w-5 shrink-0 rounded-lg border-2 transition-all flex items-center justify-center ${
+              <div className={`h-5 w-5 shrink-0 rounded-lg border-2 transition-all flex items-center justify-center ${
                 acceptedTerms 
                   ? 'bg-primary border-primary shadow-[0_0_10px_rgba(var(--primary),0.3)]' 
-                  : 'border-border bg-muted/30 hover:border-primary/50'
+                  : 'border-muted-foreground/30 bg-muted/50 group-hover:border-primary/50'
               }`}>
-                {acceptedTerms && <CheckCircle2 size={14} className="text-primary-foreground stroke-[3px]" />}
+                {acceptedTerms && <CheckCircle2 size={12} className="text-primary-foreground stroke-[3px]" />}
               </div>
-              <p className="text-[10px] leading-relaxed text-muted-foreground font-bold uppercase tracking-wider select-none">
-                Eu li e aceito os <Link href="/terms" className="text-primary font-black hover:underline underline-offset-4 decoration-2">termos de uso</Link> e a política de privacidade da rede.
+              <p className="text-[9px] leading-none text-muted-foreground font-bold uppercase tracking-tight select-none">
+                Confirmo que li e aceito os <Link href="/terms" className="text-primary font-black hover:underline">termos de uso</Link> da rede.
               </p>
             </div>
 
             <Button 
               type="submit" 
-              className={`w-full h-16 rounded-4xl font-black text-lg shadow-lg transition-all active:scale-[0.98] gap-3 ${
-                acceptedTerms 
-                  ? 'shadow-primary/20' 
-                  : 'opacity-50 grayscale cursor-not-allowed'
+              className={`w-full h-12 rounded-2xl font-black text-sm shadow-md transition-all active:scale-[0.98] gap-2 ${
+                acceptedTerms ? 'hover:shadow-primary/10' : 'opacity-40 grayscale cursor-not-allowed'
               }`} 
               disabled={loading || !acceptedTerms}
             >
-              {loading ? <Loader2 className="animate-spin" /> : <ArrowRight size={20} />}
-              {loading ? "Processando..." : "Finalizar Cadastro"}
+              {loading ? <Loader2 className="animate-spin" size={16} /> : <ShieldCheck size={18} />}
+              {loading ? "PROCESSANDO..." : "FINALIZAR CADASTRO"}
             </Button>
           </form>
 
-          <div className="mt-10 text-center border-t border-border pt-8">
-            <p className="text-xs text-muted-foreground font-medium">
-              Já possui uma conta?{" "}
-              <Link href="/login" className="text-primary font-black hover:underline underline-offset-4 flex items-center justify-center gap-1 mt-2 uppercase tracking-widest text-[10px]">
-                <ArrowLeft size={12} /> Acessar Login
+          <div className="mt-6 text-center border-t border-border pt-4">
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest flex items-center justify-center gap-1">
+              Já faz parte?{" "}
+              <Link href="/login" className="text-primary inline-flex items-center gap-1 hover:underline ml-1">
+                <ArrowLeft size={10} /> Login
               </Link>
             </p>
           </div>
         </div>
         
-        {/* Footer de Engenharia */}
-        <p className="text-center mt-8 text-[9px] text-muted-foreground/30 font-black uppercase tracking-[0.4em]">
-          Processamento de Dados Protegido &bull; Ecosol 2026
+        <p className="text-center mt-6 text-[8px] text-muted-foreground/30 font-black uppercase tracking-[0.4em]">
+          LGPD Compliant &bull; Ecosol 2026
         </p>
       </div>
     </div>
