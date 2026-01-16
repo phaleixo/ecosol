@@ -39,9 +39,10 @@ const CONFIG = {
     name: "ECOSOL",
     description: "Plataforma colaborativa que conecta profissionais autistas, promovendo autonomia financeira e colaboração técnica em ambiente inclusivo.",
     copyright: `© ${new Date().getFullYear()} Ecosol • Gestão de Economia Solidária`,
-    version: "v1.0.2",
+    version: "v1.1.4", // Versão de fallback (caso a API falhe)
     logo: "/ecosol-meta.png",
-    termsUrl: "/terms"
+    termsUrl: "/terms",
+    repoPath: "EcoSolTEA/ecosol" // Caminho do seu repositório
   },
   contacts: [
     { name: "Larissa Matos", role: "Moderadora", phone: "553199784140" },
@@ -73,7 +74,6 @@ const ContactCard = ({ contact, message }: { contact: Contact; message: string }
       rel="noopener noreferrer"
       className="flex items-center p-1.5 rounded-xl bg-background/50 border hover:border-primary/30 transition-colors group w-full"
     >
-      {/* Lado Esquerdo: Ícone e Texto */}
       <div className="flex items-center gap-2 shrink-0">
         <MessageCircle size={12} className="text-primary" />
         <div className="flex flex-col justify-center">
@@ -85,8 +85,6 @@ const ContactCard = ({ contact, message }: { contact: Contact; message: string }
           </span>
         </div>
       </div>
-
-      {/* Meio/Direita: Contêiner que centraliza a seta no espaço vazio */}
       <div className="flex-1 flex justify-center items-center">
         <ArrowRight 
           size={10} 
@@ -120,9 +118,37 @@ const TeamMember = ({ member }: { member: Creator }) => {
 
 export default function Footer() {
   const [mounted, setMounted] = React.useState(false);
+  const [currentVersion, setCurrentVersion] = React.useState(CONFIG.platform.version);
   
   React.useEffect(() => {
     setMounted(true);
+
+    const fetchVersion = async () => {
+      try {
+        // 1. Tenta buscar o Release mais recente
+        const releaseRes = await fetch(`https://api.github.com/repos/${CONFIG.platform.repoPath}/releases/latest`);
+        if (releaseRes.ok) {
+          const data = await releaseRes.json();
+          if (data.tag_name) {
+            setCurrentVersion(data.tag_name);
+            return;
+          }
+        }
+
+        // 2. Fallback: Busca a última Tag se não houver Releases oficiais
+        const tagsRes = await fetch(`https://api.github.com/repos/${CONFIG.platform.repoPath}/tags`);
+        if (tagsRes.ok) {
+          const tagsData = await tagsRes.json();
+          if (tagsData.length > 0) {
+            setCurrentVersion(tagsData[0].name);
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao obter versão do GitHub:", error);
+      }
+    };
+
+    fetchVersion();
   }, []);
   
   if (!mounted) return null;
@@ -146,28 +172,24 @@ export default function Footer() {
           
           <div className="col-span-2 md:col-span-2 space-y-3">
             <div className="flex items-center gap-2 shrink-0">
-                {/* Ajustado: de rounded-full para rounded-md, removido border e alterado para contain */}
                 <div className="relative h-7 w-7 overflow-hidden rounded-md">
                     <Image 
-                    src={platform.logo} 
-                    alt="Logo Ecosol" 
-                    fill 
-                    className="object-contain" 
-                    sizes="28px" 
+                      src={platform.logo} 
+                      alt="Logo Ecosol" 
+                      fill 
+                      className="object-contain" 
+                      sizes="28px" 
                     />
                 </div>
-                
-                {/* Ajustado: whitespace-nowrap e tracking-tighter para consistência com o header e evitar wrap */}
                 <span className="font-black text-base uppercase tracking-tighter whitespace-nowrap">
                     {platform.name}
                 </span>
-                </div>
+            </div>
             
             <p className="text-[10px] leading-relaxed text-muted-foreground font-bold uppercase tracking-wider max-w-[400px] text-justify">
               {platform.description}
             </p>
 
-            {/* Ajuste: max-w-[400px] e justify-between para alinhar com o fim do texto */}
             <div className="flex flex-nowrap items-center justify-between gap-1 sm:gap-3 max-w-[400px] w-full overflow-hidden">
               <div className="flex items-center gap-1 sm:gap-1.5 text-[7px] min-[400px]:text-[8px] sm:text-[9px] font-black uppercase tracking-tight sm:tracking-wider text-primary whitespace-nowrap shrink">
                 <Rocket size={11} className="shrink-0" />
@@ -245,7 +267,7 @@ export default function Footer() {
           <div className="md:col-span-1 flex justify-center md:justify-end w-full">
             <div className="flex items-center justify-center px-2.5 h-6 rounded-full bg-primary/5 border border-primary/10">
               <span className="text-[9px] font-black text-primary uppercase tracking-widest leading-none">
-                {platform.version}
+                {currentVersion}
               </span>
             </div>
           </div>

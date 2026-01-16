@@ -13,6 +13,16 @@ interface CategoryData {
   count: number;
 }
 
+// Função Utilitária para embaralhar o array
+const shuffleArray = (array: any[]) => {
+  const newArray = [...array];
+  for (let i = newArray.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+  }
+  return newArray;
+};
+
 export default function LiveSearchContainer({
   initialServices,
   categories,
@@ -20,27 +30,23 @@ export default function LiveSearchContainer({
   initialServices: Service[];
   categories: CategoryData[];
 }) {
-  const [services, setServices] = React.useState<Service[]>(initialServices);
+  // Inicializamos o estado já com um shuffle dos dados iniciais
+  const [services, setServices] = React.useState<Service[]>(() => shuffleArray(initialServices));
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("Todas");
   const [isSearching, setIsSearching] = React.useState(false);
-  
-  // 1. ESTADO DE CARREGAMENTO INICIAL (F5)
-  // Como as initialServices vêm do servidor, começamos como 'false' 
-  // Mas se você quiser ver o skeleton no refresh, podemos simular a hidratação
   const [isInitialPageLoad, setIsInitialPageLoad] = React.useState(true);
 
   React.useEffect(() => {
-    // Simula o tempo de "montagem" da página para exibir o skeleton apenas no F5
     const timer = setTimeout(() => setIsInitialPageLoad(false), 800);
     return () => clearTimeout(timer);
   }, []);
 
   React.useEffect(() => {
     const fetchData = async () => {
-      // Se não há busca, voltamos para o random inicial sem skeleton
+      // Se não há busca e é "Todas", usamos o initialServices embaralhado
       if (!searchTerm && selectedCategory === "Todas") {
-        setServices(initialServices);
+        setServices(shuffleArray(initialServices));
         return;
       }
 
@@ -53,7 +59,8 @@ export default function LiveSearchContainer({
         const res = await fetch(`/api/search?${query.toString()}`);
         if (res.ok) {
           const data = await res.json();
-          setServices(data);
+          // Aplicamos o shuffle nos dados que vem da API
+          setServices(shuffleArray(data));
         }
       } catch (err) {
         console.error("Erro busca:", err);
@@ -62,6 +69,7 @@ export default function LiveSearchContainer({
       }
     };
 
+    // Delay de debounce para a busca
     const timeoutId = setTimeout(fetchData, searchTerm ? 400 : 0);
     return () => clearTimeout(timeoutId);
   }, [searchTerm, selectedCategory, initialServices]);
@@ -91,11 +99,9 @@ export default function LiveSearchContainer({
         />
       </div>
 
-      {/* 3. Grid com Logística de Exibição Inteligente */}
+      {/* 3. Grid com Shuffle Animado */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4 relative">
-        
         <AnimatePresence mode="popLayout">
-          {/* SKELETON: Só aparece no recarregamento da página (isInitialPageLoad) */}
           {isInitialPageLoad ? (
             Array.from({ length: 6 }).map((_, i) => (
               <motion.div 
@@ -108,7 +114,6 @@ export default function LiveSearchContainer({
               </motion.div>
             ))
           ) : services.length === 0 && !isSearching ? (
-            /* Estado Vazio */
             <motion.div 
               key="empty-state"
               initial={{ opacity: 0 }}
@@ -121,22 +126,21 @@ export default function LiveSearchContainer({
               </p>
             </motion.div>
           ) : (
-            /* CARDS: Eles permanecem na tela durante a busca (isSearching), permitindo o Shuffle */
             services.map((service) => (
               <motion.div
-                key={service.id}
-                layout
+                key={service.id} // O ID estável permite que o Framer Motion saiba quem mover
+                layout // Ativa a animação de reordenamento automático
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ 
-                  opacity: isSearching ? 0.5 : 1, // Feedback visual de busca sem remover o card
+                  opacity: isSearching ? 0.5 : 1,
                   scale: 1 
                 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{
                   type: "spring",
-                  stiffness: 400,
-                  damping: 35,
-                  layout: { duration: 0.45 }
+                  stiffness: 350,
+                  damping: 25,
+                  layout: { duration: 0.5 }
                 }}
               >
                 <ServiceCard service={service} />
