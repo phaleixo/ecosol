@@ -6,19 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
 import Link from "next/link";
-import { 
-  UserPlus, 
-  Mail, 
-  Lock, 
-  Loader2, 
-  Sun, 
-  Moon, 
-  ArrowRight, 
-  CheckCircle2, 
-  AlertCircle,
-  ArrowLeft,
-  ShieldCheck
-} from "lucide-react";
+import { UserPlus, Mail, Lock, Loader2, Sun, Moon, ArrowRight, CheckCircle2, AlertCircle,ArrowLeft,ShieldCheck } from "lucide-react";
 
 export default function SignupPage() {
   const [email, setEmail] = React.useState("");
@@ -106,8 +94,8 @@ export default function SignupPage() {
         {mounted && (theme === "dark" ? <Sun size={18} /> : <Moon size={18} />)}
       </button>
 
-      <div className="w-full max-w-[380px] animate-in fade-in zoom-in-95 duration-500">
-        <div className="bg-card p-6 md:p-8 rounded-[2rem] shadow-xl border border-border relative overflow-hidden">
+      <div className="w-full max-w-95 animate-in fade-in zoom-in-95 duration-500">
+        <div className="bg-card p-6 md:p-8 rounded-4xl shadow-xl border border-border relative overflow-hidden">
           
           <div className="text-center mb-6">
             <div className="inline-flex p-3 bg-primary/5 rounded-2xl mb-3 text-primary border border-primary/10 shadow-inner">

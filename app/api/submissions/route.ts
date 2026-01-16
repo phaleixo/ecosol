@@ -72,13 +72,13 @@ export async function POST(req: Request) {
       const emailPromises = [];
 
       if (admins && admins.length > 0) {
-        admins.forEach(admin => {
+        admins.forEach((admin: { email: any; }) => {
           if (!admin.email) return;
           emailPromises.push(
             transporter.sendMail({
               from: `"Sistema Ecosol" <${process.env.GMAIL_USER}>`,
               to: admin.email,
-              subject: '🚨 Nova Aprovação Pendente - Ecosol',
+              subject: 'Nova Aprovação Pendente - Ecosol',
               html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 20px; padding: 30px;">
                   <h2 style="color: #0f172a; font-weight: 900;">Olá Admin!</h2>

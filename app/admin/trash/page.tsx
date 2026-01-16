@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import Header from "@/components/header";
 import TrashList from "./trash-list";

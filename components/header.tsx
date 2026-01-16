@@ -8,18 +8,7 @@ import { supabase } from "@/lib/supabase";
 import type { User } from "@supabase/supabase-js";
 import { Button } from "./ui/button";
 import NotificationModal from "./notification-modal";
-import { 
-  Bell, 
-  LogOut, 
-  User as UserIcon, 
-  LayoutDashboard, 
-  PlusCircle,
-  ChevronDown,
-  Sun,
-  Moon,
-  Loader2,
-  ShieldCheck // Adicionado para a flag de Termos
-} from "lucide-react";
+import { Bell, LogOut, User as UserIcon, LayoutDashboard, PlusCircle,ChevronDown, Sun, Moon, Loader2, ShieldCheck } from "lucide-react";
 
 type ModalNotification = { 
   id?: string; 
@@ -203,7 +192,7 @@ export default function Header() {
                       </span>
                     </Button>
                     {pendingCount > 0 && (
-                      <div className="absolute -top-1.5 -right-1.5 bg-destructive text-white text-[10px] font-black h-5 min-w-[20px] px-1.5 rounded-full flex items-center justify-center ring-2 ring-background animate-in zoom-in duration-300 shadow-lg">
+                      <div className="absolute -top-1.5 -right-1.5 bg-destructive text-white text-[10px] font-black h-5 min-w-5 px-1.5 rounded-full flex items-center justify-center ring-2 ring-background animate-in zoom-in duration-300 shadow-lg">
                         {isLoadingCount ? <Loader2 size={10} className="animate-spin" /> : (pendingCount > 99 ? '99+' : pendingCount)}
                       </div>
                     )}

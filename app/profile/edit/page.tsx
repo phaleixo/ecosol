@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,8 +7,6 @@ import { useRouter } from "next/navigation";
 import Header from "@/components/header";
 import { supabase } from "@/lib/supabase";
 import { Loader2, Save, ArrowLeft, User, Phone, FileText } from "lucide-react";
-
-// Importação da Central de Estilo do Swal
 import { showLoading, notify } from "@/lib/swal";
 
 const formatPhoneNumber = (value: string) => {

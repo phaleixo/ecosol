@@ -6,7 +6,14 @@ import SearchBar from "./search-bar";
 import ServiceCard from "./service-card";
 import CategoryFilter from "./category-filter";
 import ServiceSkeleton from "./service-skeleton";
-import { Service } from "@prisma/client";
+
+
+interface Service {
+  id: string;
+  name: string;
+  category: string;
+  [key: string]: any;
+}
 
 interface CategoryData {
   name: string;

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-export const dynamic = "force-dynamic"; // Garante dados sempre frescos
+export const dynamic = "force-dynamic"; // Garante dados sempre atualizados
 
 export async function GET() {
   try {

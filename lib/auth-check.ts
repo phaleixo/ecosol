@@ -1,4 +1,4 @@
-// lib/auth-check.ts
+
 import { cookies } from "next/headers";
 
 export async function checkAdminAuth() {

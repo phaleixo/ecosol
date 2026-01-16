@@ -47,7 +47,7 @@ export default async function Home({ searchParams }: { searchParams: Promise<{ c
    */
   const categoriesWithCounts = [
     { name: "Todas", count: total },
-    ...counts.map(c => ({ name: c.category, count: c._count.category }))
+    ...counts.map((c: { category: any; _count: { category: any; }; }) => ({ name: c.category, count: c._count.category }))
   ];
 
   return (

@@ -10,7 +10,6 @@ export async function GET() {
         deletedAt: { not: null },
       },
       orderBy: { deletedAt: 'desc' },
-      // Selecionamos TUDO que o ServiceCard e o Dashboard precisam
       select: {
         id: true,
         name: true,

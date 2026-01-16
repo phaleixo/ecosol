@@ -1,21 +1,31 @@
 "use client";
 
 import Image from "next/image";
-import { Service } from "@prisma/client";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import ContactIcons from "./contact-icons";
 import { Card } from "./ui/card";
 import { ArrowUpRight } from "lucide-react";
 
+type Service = {
+  id: string;
+  name: string;
+  image?: string | null;
+  description?: string | null;
+  category?: string | null;
+  whatsapp?: string | null;
+  instagram?: string | null;
+  tiktok?: string | null;
+  email?: string | null;
+  site?: string | null;
+};
 export default function ServiceCard({ service }: { service: Service }) {
   return (
     <Card className="flex flex-col h-full border-border hover:border-primary/40 transition-all duration-300 p-3.5 shadow-sm group">
-      
       {/* Imagem */}
       <div className="relative aspect-video rounded-[1.6rem] bg-muted overflow-hidden border border-border mb-2.5">
         <Image
-          src={service.image || "/placeholder.png"}
+          src={service.image || "/ecosol-meta.png"}
           alt={service.name}
           fill
           sizes="(max-width: 640px) 100vw, 50vw"
@@ -37,7 +47,6 @@ export default function ServiceCard({ service }: { service: Service }) {
 
       {/* Rodapé estruturado */}
       <div className="mt-3 pt-3 border-t border-border space-y-3">
-        
         {/* Linha Superior: Categoria + Perfil */}
         <div className="flex items-center justify-between">
           <span className="text-[7px] font-black text-primary uppercase tracking-[0.2em] px-2 py-1 bg-primary/10 rounded-md">
@@ -45,7 +54,10 @@ export default function ServiceCard({ service }: { service: Service }) {
           </span>
 
           <Link href={`/provider/${service.id}`}>
-            <Button variant="ghost" className="h-6 px-2 rounded-lg text-primary font-black text-[9px] uppercase tracking-widest hover:bg-primary/10 transition-colors">
+            <Button
+              variant="ghost"
+              className="h-6 px-2 rounded-lg text-primary font-black text-[9px] uppercase tracking-widest hover:bg-primary/10 transition-colors"
+            >
               Perfil <ArrowUpRight className="ml-1 h-3 w-3" />
             </Button>
           </Link>

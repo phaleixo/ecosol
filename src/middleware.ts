@@ -46,7 +46,7 @@ export async function middleware(request: NextRequest) {
 
   // 5. Lógica de Bloqueio
   if (!user && isProtectedPage) {
-    console.log("🚫 Acesso negado. Redirecionando para /login...")
+    console.log(" Acesso negado. Redirecionando para /login...")
     const url = new URL('/login', request.url)
     url.searchParams.set('next', pathname)
     

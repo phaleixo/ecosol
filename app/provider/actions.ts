@@ -62,7 +62,7 @@ async function getAuthContext(id?: number) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   
   if (authError || !user) {
-    console.error("❌ [AUTH ERROR] Sessão inválida ou expirada.");
+    console.error(" [AUTH ERROR] Sessão inválida ou expirada.");
     return { user: null, isAdmin: false, isOwner: false };
   }
 
@@ -73,7 +73,7 @@ async function getAuthContext(id?: number) {
   });
 
   // LOG de auditoria para o seu terminal
-  console.log(`👤 [SESSION] Email: ${user.email} | Role no Banco: ${dbUser?.role}`);
+  console.log(` [SESSION] Email: ${user.email} | Role no Banco: ${dbUser?.role}`);
 
   let service = null;
   if (id) {
@@ -164,7 +164,7 @@ export async function approveServicesBatchAction(ids: number[]) {
 
     // Notificação via Gmail (Mantendo o HTML Original)
     await Promise.allSettled(
-      items.map(async (item) => {
+      items.map(async (item: { email: any; name: any; }) => {
         if (!item.email) return;
         try {
           await transporter.sendMail({

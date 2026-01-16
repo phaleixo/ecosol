@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
 export async function GET(request: Request) {
@@ -33,7 +32,7 @@ export async function GET(request: Request) {
 export async function PATCH(request: Request) {
   try {
     const { ids, email, all } = await request.json();
-    const whereClause: Prisma.NotificationWhereInput = all ? { user: { email }, read: false } : { id: { in: ids } };
+    const whereClause = all ? { user: { email }, read: false } : { id: { in: ids } };
 
     await prisma.notification.updateMany({
       where: whereClause,
@@ -50,7 +49,7 @@ export async function PATCH(request: Request) {
 export async function DELETE(request: Request) {
   try {
     const { ids, email, all } = await request.json();
-    const whereClause: Prisma.NotificationWhereInput = all ? { user: { email } } : { id: { in: ids } };
+    const whereClause = all ? { user: { email } } : { id: { in: ids } };
 
     await prisma.notification.deleteMany({ where: whereClause });
 

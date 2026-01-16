@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -183,7 +184,7 @@ export default function TrashList({ items, onRefresh, isAdmin = false }: TrashLi
       {/* DOCK DE AÇÕES EM LOTE */}
       {isAdmin && selected.length > 0 && (
         <Dock>
-          <div className="flex items-center gap-4 pr-4 md:pr-8 border-r border-border flex-shrink-0">
+          <div className="flex items-center gap-4 pr-4 md:pr-8 border-r border-border shrink-0">
             <div className="h-10 w-10 md:h-12 md:w-12 bg-primary text-primary-foreground rounded-xl flex items-center justify-center font-black text-sm md:text-lg shadow-lg shadow-primary/20">
               {isProcessing ? <Loader2 className="h-6 w-6 animate-spin" /> : selected.length}
             </div>

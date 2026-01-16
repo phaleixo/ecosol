@@ -1,13 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { 
-  Instagram, 
-  MessageCircle, 
-  Globe, 
-  Mail, 
-  Music2 
-} from "lucide-react";
+import { MessageCircle, Globe, Mail, Music2 } from "lucide-react";
 
 interface ContactIconsProps {
   contacts: {
@@ -22,19 +16,19 @@ interface ContactIconsProps {
 /**
  * Componente de Ícone Unificado (Refatorado para Dark Mode)
  */
-function ContactLink({ 
-  href, 
-  children, 
-  title 
-}: { 
-  href: string; 
-  children: React.ReactNode; 
-  title: string 
+function ContactLink({
+  href,
+  children,
+  title,
+}: {
+  href: string;
+  children: React.ReactNode;
+  title: string;
 }) {
   return (
-    <a 
-      href={href} 
-      target="_blank" 
+    <a
+      href={href}
+      target="_blank"
       rel="noreferrer"
       title={title}
       /* Logística de Cores Dinâmicas:
@@ -49,6 +43,32 @@ function ContactLink({
   );
 }
 
+function InstagramIcon({
+  size = 18,
+  strokeWidth = 2.5,
+}: {
+  size?: number;
+  strokeWidth?: number;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="3" y="3" width="18" height="18" rx="5" ry="5" />
+      <circle cx="12" cy="12" r="3.5" />
+      <circle cx="17.5" cy="6.5" r="0.5" />
+    </svg>
+  );
+}
+
 export default function ContactIcons({ contacts }: ContactIconsProps) {
   // Se não houver contatos, a logística para aqui para economizar processamento
   if (!contacts) return null;
@@ -56,8 +76,8 @@ export default function ContactIcons({ contacts }: ContactIconsProps) {
   return (
     <div className="flex items-center gap-1.5">
       {contacts.whatsapp && (
-        <ContactLink 
-          href={`https://wa.me/${contacts.whatsapp.replace(/\D/g, "")}`} 
+        <ContactLink
+          href={`https://wa.me/${contacts.whatsapp.replace(/\D/g, "")}`}
           title="WhatsApp"
         >
           <MessageCircle size={18} strokeWidth={2.5} />
@@ -65,17 +85,17 @@ export default function ContactIcons({ contacts }: ContactIconsProps) {
       )}
 
       {contacts.instagram && (
-        <ContactLink 
-          href={`https://instagram.com/${contacts.instagram.replace("@", "")}`} 
+        <ContactLink
+          href={`https://instagram.com/${contacts.instagram.replace("@", "")}`}
           title="Instagram"
         >
-          <Instagram size={18} strokeWidth={2.5} />
+          <InstagramIcon size={18} strokeWidth={2.5} />
         </ContactLink>
       )}
 
       {contacts.tiktok && (
-        <ContactLink 
-          href={`https://tiktok.com/@${contacts.tiktok.replace("@", "")}`} 
+        <ContactLink
+          href={`https://tiktok.com/@${contacts.tiktok.replace("@", "")}`}
           title="TikTok"
         >
           <Music2 size={18} strokeWidth={2.5} />

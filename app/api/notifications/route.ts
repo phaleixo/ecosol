@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const notification = await prisma.notification.create({
       data: {
         userId: user.id, // ID vindo do banco
-        message: "🚀 Alguém clicou no seu WhatsApp! Fique atento.",
+        message: "Alguém clicou no seu WhatsApp! Fique atento.",
       },
     });
 

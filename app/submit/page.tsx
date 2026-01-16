@@ -7,32 +7,10 @@ import Header from "@/components/header";
 import { supabase } from "@/lib/supabase";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import {
-  Loader2,
-  UploadCloud,
-  CheckCircle2,
-  Globe,
-  MessageCircle,
-  Music2,
-  Check,
-  ChevronsUpDown,
-} from "lucide-react";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Loader2, UploadCloud, CheckCircle2, Globe, MessageCircle, Music2, Check, ChevronsUpDown } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent,PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-
-// --- Importação da Logística de Estilo e Notificações Padronizada ---
 import { showLoading, notify, Toast } from "@/lib/swal";
 import { SERVICE_CATEGORIES } from "@/constants/categories";
 

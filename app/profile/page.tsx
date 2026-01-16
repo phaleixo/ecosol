@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from '@supabase/ssr';
 import NotificationActions from "@/components/notification-actions";
 import { UserCircle, Settings, Bell, Eye, MessageSquare } from "lucide-react";
+import { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal } from "react";
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -111,7 +112,7 @@ export default async function ProfilePage() {
                 <p className="text-muted-foreground font-bold italic text-sm">Nenhuma notificação por enquanto.</p>
               </div>
             ) : (
-              dbUser.notifications.map((n) => (
+              dbUser.notifications.map((n: { id: Key | null | undefined; read: any; message: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined; createdAt: string | number | Date; }) => (
                 <div 
                   key={n.id} 
                   className={`group p-6 rounded-3xl border transition-all duration-300 ${

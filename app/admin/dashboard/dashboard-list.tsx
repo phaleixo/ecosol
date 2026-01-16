@@ -1,4 +1,5 @@
 "use client";
+
 import * as React from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -170,7 +171,7 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
       {/* DOCK DE AÇÕES */}
       {isAdmin && selectedIds.length > 0 && (
         <Dock>
-          <div className="flex items-center gap-3 md:gap-4 pr-3 md:pr-8 border-r border-border flex-shrink-0">
+          <div className="flex items-center gap-3 md:gap-4 pr-3 md:pr-8 border-r border-border shrink-0">
             <div className="h-10 w-10 md:h-12 md:w-12 bg-primary text-primary-foreground rounded-xl flex items-center justify-center font-black text-sm md:text-lg shadow-lg shadow-primary/20">
               {isProcessing ? <Loader2 className="h-5 w-5 animate-spin" /> : selectedIds.length}
             </div>
@@ -188,7 +189,7 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
               onClick={() => handleBatchAction("approve")} 
               className="flex-1 md:flex-none bg-primary hover:bg-primary/90 text-primary-foreground font-black rounded-xl flex items-center justify-center gap-2 h-10 md:h-12 px-3 md:px-8 text-[10px] md:text-xs uppercase tracking-[0.2em] shadow-lg shadow-primary/20 transition-all active:scale-95 whitespace-nowrap"
             >
-              <CheckCircle2 className="h-4 w-4 flex-shrink-0" /> 
+              <CheckCircle2 className="h-4 w-4 shrink-0" /> 
               <span>Aprovar</span>
             </Button>
             <Button 
@@ -197,7 +198,7 @@ export default function DashboardList({ initialItems, onRefresh, isAdmin = false
               variant="ghost"
               className="flex-1 md:flex-none text-destructive hover:bg-destructive/10 hover:text-destructive font-black rounded-xl flex items-center justify-center gap-2 h-10 md:h-12 px-2 md:px-6 text-[10px] md:text-xs uppercase tracking-[0.2em] transition-all active:scale-95 whitespace-nowrap"
             >
-              <Trash2 className="h-4 w-4 flex-shrink-0" /> 
+              <Trash2 className="h-4 w-4 shrink-0" /> 
               <span>Recusar</span>
             </Button>
           </div>
