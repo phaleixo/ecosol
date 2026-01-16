@@ -13,7 +13,6 @@ interface CategoryData {
   count: number;
 }
 
-// Função Utilitária para embaralhar o array
 const shuffleArray = (array: any[]) => {
   const newArray = [...array];
   for (let i = newArray.length - 1; i > 0; i--) {
@@ -30,12 +29,14 @@ export default function LiveSearchContainer({
   initialServices: Service[];
   categories: CategoryData[];
 }) {
-  // Inicializamos o estado já com um shuffle dos dados iniciais
   const [services, setServices] = React.useState<Service[]>(() => shuffleArray(initialServices));
   const [searchTerm, setSearchTerm] = React.useState("");
   const [selectedCategory, setSelectedCategory] = React.useState("Todas");
   const [isSearching, setIsSearching] = React.useState(false);
   const [isInitialPageLoad, setIsInitialPageLoad] = React.useState(true);
+
+  // Referência para evitar o "duplo pulo"
+  const lastUpdateIds = React.useRef<string>("");
 
   React.useEffect(() => {
     const timer = setTimeout(() => setIsInitialPageLoad(false), 800);
@@ -43,41 +44,67 @@ export default function LiveSearchContainer({
   }, []);
 
   React.useEffect(() => {
-    const fetchData = async () => {
-      // Se não há busca e é "Todas", usamos o initialServices embaralhado
-      if (!searchTerm && selectedCategory === "Todas") {
-        setServices(shuffleArray(initialServices));
-        return;
+    // 1. FILTRAGEM E SHUFFLE ÚNICO (Imediato)
+    const performUpdate = async () => {
+      // Filtragem local para resposta instantânea
+      let localFiltered = initialServices.filter(s => {
+        const matchesCategory = selectedCategory === "Todas" || s.category === selectedCategory;
+        const matchesSearch = !searchTerm || 
+          s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          s.category.toLowerCase().includes(searchTerm.toLowerCase());
+        return matchesCategory && matchesSearch;
+      });
+
+      // Geramos a string de IDs para comparar se a lista realmente mudou
+      const currentIds = localFiltered.map(s => s.id).sort().join(",");
+
+      // Só atualizamos e embaralhamos se a lista de IDs mudou
+      if (currentIds !== lastUpdateIds.current) {
+        setServices(shuffleArray(localFiltered));
+        lastUpdateIds.current = currentIds;
       }
 
-      setIsSearching(true);
-      try {
-        const query = new URLSearchParams({
-          q: searchTerm,
-          category: selectedCategory,
-        });
-        const res = await fetch(`/api/search?${query.toString()}`);
-        if (res.ok) {
-          const data = await res.json();
-          // Aplicamos o shuffle nos dados que vem da API
-          setServices(shuffleArray(data));
+      // 2. SINCRONIZAÇÃO COM SERVIDOR (Em segundo plano, sem re-shuffle se for igual)
+      if (searchTerm || selectedCategory !== "Todas") {
+        if (searchTerm) setIsSearching(true);
+        
+        try {
+          const query = new URLSearchParams({ q: searchTerm, category: selectedCategory });
+          const res = await fetch(`/api/search?${query.toString()}`);
+          if (res.ok) {
+            const serverData: Service[] = await res.json();
+            const serverIds = serverData.map(s => s.id).sort().join(",");
+            
+            // SÓ atualizamos o estado se o servidor trouxer algo diferente do que já filtramos localmente
+            // Isso evita o "segundo movimento" errático
+            if (serverIds !== lastUpdateIds.current) {
+              setServices(shuffleArray(serverData));
+              lastUpdateIds.current = serverIds;
+            }
+          }
+        } catch (err) {
+          console.error("Erro busca:", err);
+        } finally {
+          setIsSearching(false);
         }
-      } catch (err) {
-        console.error("Erro busca:", err);
-      } finally {
-        setIsSearching(false);
+      } else {
+        // Se voltou para "Todas" e sem busca, apenas garante o shuffle inicial estável
+        const initialIds = initialServices.map(s => s.id).sort().join(",");
+        if (initialIds !== lastUpdateIds.current) {
+          setServices(shuffleArray(initialServices));
+          lastUpdateIds.current = initialIds;
+        }
       }
     };
 
-    // Delay de debounce para a busca
-    const timeoutId = setTimeout(fetchData, searchTerm ? 400 : 0);
+    const delay = searchTerm ? 400 : 0;
+    const timeoutId = setTimeout(performUpdate, delay);
     return () => clearTimeout(timeoutId);
   }, [searchTerm, selectedCategory, initialServices]);
 
   return (
     <div className="w-full flex flex-col transition-colors duration-300">
       
-      {/* 1. Hero / Search Area */}
       <section className="flex flex-col items-center py-2 gap-3">
         <div className="text-center space-y-0">
           <h1 className="text-2xl font-bold text-foreground tracking-tighter uppercase leading-none">
@@ -90,7 +117,6 @@ export default function LiveSearchContainer({
         </div>
       </section>
 
-      {/* 2. Filtros */}
       <div className="py-1 border-b border-border mb-0">
         <CategoryFilter
           categories={categories}
@@ -99,17 +125,11 @@ export default function LiveSearchContainer({
         />
       </div>
 
-      {/* 3. Grid com Shuffle Animado */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4 relative">
         <AnimatePresence mode="popLayout">
           {isInitialPageLoad ? (
             Array.from({ length: 6 }).map((_, i) => (
-              <motion.div 
-                key={`skeleton-${i}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
+              <motion.div key={`skeleton-${i}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                 <ServiceSkeleton />
               </motion.div>
             ))
@@ -128,19 +148,22 @@ export default function LiveSearchContainer({
           ) : (
             services.map((service) => (
               <motion.div
-                key={service.id} // O ID estável permite que o Framer Motion saiba quem mover
-                layout // Ativa a animação de reordenamento automático
+                key={service.id}
+                layout
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ 
-                  opacity: isSearching ? 0.5 : 1,
+                  opacity: isSearching ? 0.6 : 1, 
                   scale: 1 
                 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{
+                  // Ajustado para um movimento mais "Gentle" (suave) e menos "Snappy" (brusco)
+                  // Ideal para acessibilidade neurodivergente (evita movimentos súbitos)
                   type: "spring",
-                  stiffness: 350,
+                  stiffness: 150, 
                   damping: 25,
-                  layout: { duration: 0.5 }
+                  mass: 1,
+                  layout: { duration: 0.4 }
                 }}
               >
                 <ServiceCard service={service} />
