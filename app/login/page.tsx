@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "next-themes";
 import Link from "next/link";
+import Image from "next/image";
 import {
   Loader2,
   Mail,
@@ -19,7 +20,6 @@ import {
   KeyRound,
   ArrowLeft,
   ShieldCheck,
-  User2Icon,
 } from "lucide-react";
 
 export default function LoginPage() {
@@ -99,21 +99,38 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center lg:justify-end bg-background bg-[url('/background.png')] bg-no-repeat bg-[position:45%_center] lg:bg-[position:10%_center] bg-contain bg-origin-content text-foreground p-4 lg:px-12 xl:px-20 transition-colors duration-500">
+    <div className="min-h-screen flex items-center justify-center lg:justify-end bg-background bg-none lg:bg-[url('/background.png')] lg:bg-no-repeat lg:bg-[position:left] lg:bg-[length:clamp(35rem,55vw,50rem)_auto] bg-origin-content text-foreground p-4 lg:px-12 xl:px-20 transition-colors duration-500">
+      <div className="hidden lg:flex absolute left-10 xl:left-20 top-[10%] -translate-y-1/2 max-w-[24rem] flex-col gap-4 text-left pointer-events-none">
+        <p className="text-3xl xl:text-3xl font-black tracking-tight uppercase leading-[0.95] text-foreground/90">
+          <span className="inline-block whitespace-nowrap -translate-x-2">
+            Um espaço onde ser voce é o melhor negócio.
+          </span>
+        </p>
+      </div>
+
       {/* Botão de Tema Flutuante Otimizado */}
       <button
         onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-        className="fixed top-4 right-4 p-2.5 bg-card border border-border rounded-sm shadow-sm hover:bg-muted transition-all text-primary z-50"
+        className="fixed top-4 right-4 p-2.5 bg-card border border-border rounded-xl shadow-sm hover:bg-muted transition-all text-primary z-50"
       >
         {mounted && (theme === "dark" ? <Sun size={18} /> : <Moon size={18} />)}
       </button>
 
-      <div className="w-full max-w-95 animate-in fade-in zoom-in-95 duration-500">
+      <div className="w-full max-w-95 animate-in fade-in zoom-in-95 duration-500 lg:mr-28 xl:mr-30">
         <div className="bg-card p-6 md:p-8 rounded-sm shadow-xl border border-border relative overflow-hidden">
           {/* Cabeçalho de Identidade Reduzido */}
           <div className="text-center mb-6">
-            <div className="inline-flex p-3 bg-primary/5 rounded-2xl mb-3 text-primary border border-primary/10 shadow-inner">
-              {isResetting ? <KeyRound size={24} /> : <User2Icon size={24} />}
+            <div className="inline-flex mb-3 text-primary">
+              {isResetting ? (
+                <KeyRound size={40} />
+              ) : (
+                <Image
+                  src="/icons/icon-192.png"
+                  alt="Logo Ecosol"
+                  width={40}
+                  height={40}
+                />
+              )}
             </div>
             <h1 className="text-2xl font-black tracking-tighter uppercase leading-none">
               {isResetting ? "Recuperar" : "Bem-vindo"}
@@ -121,6 +138,14 @@ export default function LoginPage() {
             <p className="text-muted-foreground text-[9px] font-black uppercase tracking-[0.2em] mt-2">
               {isResetting ? "Redefinição de Acesso" : "Rede Ecosol Autista"}
             </p>
+            {!isResetting && (
+              <Link
+                href="/oque"
+                className="mt-2 inline-block text-[10px] font-black uppercase tracking-[0.25em] text-primary hover:underline underline-offset-4"
+              >
+                Mas o que é economia solidária?
+              </Link>
+            )}
           </div>
 
           {/* Mensagens de Feedback Semântico */}
@@ -243,6 +268,12 @@ export default function LoginPage() {
                   Criar conta agora
                 </Link>
               </p>
+              <Link
+                href="/"
+                className="mt-2 inline-block text-[9px] font-black uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Voltar para a página inicial
+              </Link>
             </div>
           )}
         </div>

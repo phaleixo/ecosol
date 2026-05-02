@@ -193,7 +193,7 @@ export default async function ProviderPage({
                 priority
                 loading="eager"
                 sizes="(max-width: 768px) 100vw, 40vw"
-                className="object-cover"
+                className="object-contain"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-muted">
