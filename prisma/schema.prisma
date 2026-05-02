@@ -1,0 +1,54 @@
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  name        String
+  category    String
+  image       String?
+  whatsapp    String?
+  instagram   String?
+  tiktok      String?
+  email       String?
+  site        String?
+  approved    Boolean  @default(false)
+  suspended   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  description String?
+  views       Int      @default(0)
+  deletedAt   DateTime?
+}
+
+model User {
+  id            String         @id @default(cuid())
+  name          String?
+  email         String?        @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String         @default("USER")
+  bio           String?
+  createdAt     DateTime       @default(now())
+  phone         String?
+  notifications Notification[]
+  
+// --- CAMPOS DE COMPLIANCE LGPD ---
+  acceptedTerms Boolean        @default(false)
+  termsVersion  String?        // Versão aceita (ex: "1.0.2")
+  acceptedAt    DateTime?      // Timestamp do momento do aceite
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+}
