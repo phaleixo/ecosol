@@ -3,7 +3,6 @@
 import * as React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
 import {
   ShieldCheck,
   MessageCircle,
@@ -261,51 +260,7 @@ function TwitterIcon({ size = 13 }: { size?: number }) {
 }
 
 export default function Footer() {
-  const [mounted, setMounted] = React.useState(false);
-  const [isMobile, setIsMobile] = React.useState(false);
-  const [currentVersion, setCurrentVersion] = React.useState(
-    CONFIG.platform.version
-  );
-
-  React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMounted(true);
-
-    const mm = window.matchMedia("(max-width: 767px)");
-    const setMatch = () => setIsMobile(mm.matches);
-    setMatch();
-    mm.addEventListener?.("change", setMatch);
-
-    const fetchVersion = async () => {
-      try {
-        const releaseRes = await fetch(
-          `https://api.github.com/repos/${CONFIG.platform.repoPath}/releases/latest`
-        );
-        if (releaseRes.ok) {
-          const data = await releaseRes.json();
-          if (data.tag_name) {
-            setCurrentVersion(data.tag_name);
-            return;
-          }
-        }
-
-        const tagsRes = await fetch(
-          `https://api.github.com/repos/${CONFIG.platform.repoPath}/tags`
-        );
-        if (tagsRes.ok) {
-          const tagsData = await tagsRes.json();
-          if (tagsData.length > 0) {
-            setCurrentVersion(tagsData[0].name);
-          }
-        }
-      } catch (error) {
-        console.error("Erro ao obter versão do GitHub:", error);
-      }
-    };
-
-    fetchVersion();
-    return () => mm.removeEventListener?.("change", setMatch);
-  }, []);
+  const currentVersion = CONFIG.platform.version;
 
   
 

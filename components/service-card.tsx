@@ -137,7 +137,7 @@ export default function ServiceCard({
                   <TooltipTrigger asChild>
                     <p 
                       ref={descRef}
-                      className="text-[9px] md:text-[10px] text-muted-foreground line-clamp-2 leading-tight font-medium opacity-90 group-hover:opacity-100 transition-opacity duration-300"
+                      className="text-[10px] md:text-[11px] text-muted-foreground line-clamp-2 leading-tight font-medium opacity-90 group-hover:opacity-100 transition-opacity duration-300"
                     >
                       {service.description}
                     </p>

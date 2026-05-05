@@ -62,14 +62,27 @@ export async function generateMetadata({
   const ogImageUrl = `${url}/opengraph-image`;
   const descriptionBase =
     service.description?.trim() ||
-    "Conheça este prestador na rede ECOSOL Autista.";
+    "Conheça este perfil na ECOSOL Autista e veja como falar com o profissional.";
   const description =
-    descriptionBase.length > 190
-      ? `${descriptionBase.slice(0, 187)}...`
+    descriptionBase.length > 155
+      ? `${descriptionBase.slice(0, 152)}...`
       : descriptionBase;
-  const title = service.category
-    ? `${service.name} | ${service.category}`
-    : service.name;
+
+  const categoryLabel = service.category
+    .split(" ")
+    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+
+  let title = `${service.name} | ${categoryLabel} | Agende pelo WhatsApp`;
+  if (title.length > 60) {
+    title = `${service.name} | ${categoryLabel} | ECOSOL Autista`;
+  }
+  if (title.length < 50) {
+    title = `${title} | Atendimento online`;
+  }
+  if (title.length > 60) {
+    title = `${title.slice(0, 57)}...`;
+  }
 
   return {
     title,

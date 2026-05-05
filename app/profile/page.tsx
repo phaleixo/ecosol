@@ -8,7 +8,70 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createServerClient } from "@supabase/ssr";
 import NotificationActions from "@/components/notification-actions";
+import ProviderShareButton from "@/components/provider-share-button";
 import { UserCircle, Settings, Bell, Eye, MessageSquare, ArrowLeft } from "lucide-react";
+import type { Metadata } from "next";
+
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  process.env.NEXTAUTH_URL ||
+  "https://ecosolautista.com.br";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const profileUrl = `${siteUrl}/profile`;
+  const cookieStore = await cookies();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    { cookies: { getAll: () => cookieStore.getAll() } },
+  );
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const service = user?.email
+    ? await prisma.service.findFirst({
+        where: { email: user.email },
+        select: { image: true },
+      })
+    : null;
+
+  const cardImageUrl = service?.image
+    ? new URL(service.image, siteUrl).toString()
+    : `${siteUrl}/ecosol-meta.png`;
+
+  return {
+    title: "Meu perfil",
+    description:
+      "Acompanhe seus dados, notificações e estatísticas do seu card na ECOSOL Autista.",
+    alternates: {
+      canonical: profileUrl,
+    },
+    openGraph: {
+      title: "Meu perfil | ECOSOL Autista",
+      description:
+        "Veja suas notificações, dados cadastrais e desempenho do seu card na plataforma.",
+      url: profileUrl,
+      siteName: "ECOSOL Autista",
+      locale: "pt_BR",
+      type: "website",
+      images: [
+        {
+          url: cardImageUrl,
+          alt: "Imagem do card do usuário na ECOSOL Autista",
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Meu perfil | ECOSOL Autista",
+      description:
+        "Acesse seu perfil para gerenciar dados e acompanhar a atividade da sua conta.",
+      images: [cardImageUrl],
+    },
+  };
+}
 
 export default async function ProfilePage() {
   const cookieStore = await cookies();
@@ -72,6 +135,15 @@ export default async function ProfilePage() {
                 <span className="hidden md:inline">Configurações</span>
               </Button>
             </Link>
+
+            {service && (
+              <ProviderShareButton
+                providerId={service.id}
+                name={service.name}
+                category={service.category}
+                description={service.description}
+              />
+            )}
             
             <div className="h-5 w-px bg-border/50 mx-0.5" />
             
@@ -179,6 +251,7 @@ export default async function ProfilePage() {
                 </p>
               </div>
             ) : (
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
               dbUser.notifications.map((n: any) => (
                 <div
                   key={String(n.id)}
