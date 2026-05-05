@@ -8,63 +8,63 @@ export const size = {
 };
 export const contentType = "image/png";
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_IMAGE_BYTES = 300 * 1024; // 300 KB — limite para WhatsApp
 
 function truncateText(value: string, maxLength: number): string {
   if (value.length <= maxLength) return value;
   return `${value.slice(0, maxLength - 3).trimEnd()}...`;
 }
 
-function buildOptimizedImageUrl(rawUrl: string): string | null {
+function sanitizeUrl(rawUrl: string): string | null {
   try {
     const parsed = new URL(rawUrl);
-
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-      return null;
-    }
-
-    // Mantemos a otimização, mas forçando formato de origem para evitar webp/avif em OG.
-    parsed.searchParams.set("width", "320");
-    parsed.searchParams.set("height", "320");
-    parsed.searchParams.set("resize", "cover");
-    parsed.searchParams.set("format", "origin");
-
+    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
     return parsed.toString();
   } catch {
     return null;
   }
 }
 
-async function fetchImageAsBase64(url: string): Promise<string | null> {
-  try {
-    const response = await fetch(url, {
-      signal: AbortSignal.timeout(6000),
-      headers: {
-        "User-Agent": "Mozilla/5.0 (compatible; EcosolOGBot/1.0)",
-        "Accept": "image/png,image/jpeg,image/jpg,image/*;q=0.8",
-        "Referer": "https://ecosolautista.com.br/",
-      },
-    });
-    
-    if (!response.ok) return null;
-    
-    const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-    if (!contentType.startsWith("image/")) return null;
-    if (contentType.includes("webp") || contentType.includes("avif")) return null;
+async function fetchOptimizedImageBase64(rawUrl: string): Promise<string | null> {
+  // Usa um proxy de otimização (weserv) e tenta reduções progressivas até caber em 300KB
+  const proxyBase = "https://images.weserv.nl/?";
+  const qualities = [80, 60, 40, 30, 20];
+  const widths = [550, 480, 400, 320, 240];
 
-    const contentLength = Number.parseInt(response.headers.get("content-length") ?? "0", 10);
-    if (contentLength > MAX_IMAGE_BYTES) return null;
-    
-    const buffer = await response.arrayBuffer();
-    if (buffer.byteLength > MAX_IMAGE_BYTES) return null;
+  const sanitized = sanitizeUrl(rawUrl);
+  if (!sanitized) return null;
 
-    const base64 = Buffer.from(buffer).toString("base64");
-    
-    return `data:${contentType};base64,${base64}`;
-  } catch (error) {
-    console.error("Fetch error:", error);
-    return null;
+  for (const w of widths) {
+    for (const q of qualities) {
+      const proxyUrl = `${proxyBase}url=${encodeURIComponent(sanitized)}&w=${w}&fit=contain&output=jpg&q=${q}`;
+      try {
+        const response = await fetch(proxyUrl, {
+          signal: AbortSignal.timeout(6000),
+          headers: {
+            "User-Agent": "Mozilla/5.0 (compatible; EcosolOGBot/1.0)",
+            "Accept": "image/jpeg,image/*;q=0.8",
+            "Referer": "https://ecosolautista.com.br/",
+          },
+        });
+
+        if (!response.ok) continue;
+
+        const contentType = (response.headers.get("content-type") || "").toLowerCase();
+        if (!contentType.startsWith("image/")) continue;
+
+        const buffer = await response.arrayBuffer();
+        if (buffer.byteLength > MAX_IMAGE_BYTES) continue;
+
+        const base64 = Buffer.from(buffer).toString("base64");
+        return `data:${contentType};base64,${base64}`;
+      } catch (err) {
+        console.error("Optimized fetch error:", err);
+        continue;
+      }
+    }
   }
+
+  return null;
 }
 
 export default async function Image({ params }: { params: Promise<{ id: string }> }) {
@@ -95,14 +95,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
     const headline = truncateText(headlineRaw, 52);
     const categoryPill = truncateText(categoryRaw, 28);
-    const description = truncateText(descriptionRaw, 120);
+    const description = truncateText(descriptionRaw, 280);
     
     let imageDataUrl: string | null = null;
     if (service.image) {
-      const optimizedImageUrl = buildOptimizedImageUrl(service.image);
-      if (optimizedImageUrl) {
-        imageDataUrl = await fetchImageAsBase64(optimizedImageUrl);
-      }
+      imageDataUrl = await fetchOptimizedImageBase64(service.image);
     }
 
     return new ImageResponse(
@@ -110,31 +107,32 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         width: "100%",
         height: "100%",
         display: "flex",
-        background: "#0f172a",
-        color: "#f8fafc",
+        background: "#ffffff",
+        color: "#374151",
         padding: 40,
         gap: 32,
       }}>
         {/* Imagem */}
         <div style={{
-          width: 320,
-          height: 320,
+          width: 550,
+          height: 630,
           borderRadius: 20,
-          overflow: "hidden",
-          background: "#111827",
+          background: "#f3f4f6",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          alignSelf: "center",
+          alignSelf: "stretch",
+          flexShrink: 0,
+          padding: 20,
         }}>
           {imageDataUrl ? (
             <img src={imageDataUrl} alt={headline} style={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
+              maxWidth: "100%",
+              maxHeight: "100%",
+              objectFit: "contain",
             }} />
           ) : (
-            <div style={{ fontSize: 120, opacity: 0.8 }}>🏢</div>
+            <div style={{ fontSize: 140, color: "#9ca3af" }}>🏢</div>
           )}
         </div>
 
@@ -152,11 +150,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             maxWidth: 520,
             overflow: "hidden",
             borderRadius: 999,
-            border: "1px solid rgba(34,197,94,0.5)",
-            background: "rgba(34,197,94,0.15)",
-            color: "#86efac",
-            padding: "8px 16px",
-            fontSize: 22,
+            border: "1px solid #22c55e",
+            background: "rgba(34,197,94,0.25)",
+            color: "#047857",
+            padding: "6px 14px",
+            fontSize: 16,
             fontWeight: 700,
             textTransform: "uppercase",
             whiteSpace: "nowrap",
@@ -167,10 +165,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
 
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{
-              fontSize: 58,
+              fontSize: 42,
               fontWeight: 800,
-              lineHeight: 1,
+              lineHeight: 1.1,
               letterSpacing: "-0.02em",
+              color: "#111827",
             }}>
               {headline}
             </div>
@@ -178,11 +177,11 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             
 
             <div style={{
-              fontSize: 28,
-              lineHeight: 1.35,
-              color: "rgba(248,250,252,0.9)",
+              fontSize: 18,
+              lineHeight: 1.4,
+              color: "#374151",
               overflow: "hidden",
-              maxHeight: 228,
+              maxHeight: 180,
             }}>
               {description}
             </div>
@@ -194,6 +193,7 @@ export default async function Image({ params }: { params: Promise<{ id: string }
             gap: 10,
             fontSize: 22,
             fontWeight: 600,
+            color: "#374151",
           }}>
             
           </div>
@@ -210,8 +210,8 @@ export default async function Image({ params }: { params: Promise<{ id: string }
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#1a1a1a",
-        color: "white",
+        background: "#ffffff",
+        color: "#111827",
         fontSize: 48,
       }}>
         ECOSOL Autista

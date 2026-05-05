@@ -226,7 +226,6 @@ export default async function ProviderPage({
                 providerId={service.id}
                 name={service.name}
                 category={service.category}
-                description={service.description}
               />
 
               {canEdit && (

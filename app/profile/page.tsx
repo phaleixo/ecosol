@@ -141,7 +141,6 @@ export default async function ProfilePage() {
                 providerId={service.id}
                 name={service.name}
                 category={service.category}
-                description={service.description}
               />
             )}
             

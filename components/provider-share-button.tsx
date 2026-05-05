@@ -31,7 +31,6 @@ export default function ProviderShareButton({
   providerId,
   name,
   category,
-  description,
 }: ProviderShareButtonProps) {
   const [copied, setCopied] = useState(false);
   const [isNativeShareSupported, setIsNativeShareSupported] = useState(false);
@@ -47,19 +46,16 @@ export default function ProviderShareButton({
   }, [name, category]);
 
   const shareText = useMemo(() => {
-    const cleanDescription = (description || "").trim();
     const categoryText = category ? `Categoria: ${category}. ` : "";
-    if (cleanDescription) {
-      return `${name}. ${categoryText}${cleanDescription}`;
-    }
     return `${name}. ${categoryText}Conheça este perfil no ECOSOL Autista.`;
-  }, [name, category, description]);
+  }, [name, category]);
 
   useEffect(() => {
     if (
       typeof navigator !== "undefined" &&
       typeof navigator.share === "function"
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsNativeShareSupported(true);
     }
   }, []);
@@ -72,7 +68,7 @@ export default function ProviderShareButton({
       key: "whatsapp",
       label: "WhatsApp",
       icon: <MessageCircle className="h-4 w-4" />,
-      href: `https://wa.me/?text=${encodedText}%20${encodedUrl}`,
+      href: `https://wa.me/?text=${encodedUrl}`,
     },
     {
       key: "facebook",
