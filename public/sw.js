@@ -31,19 +31,41 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      if (response) return response;
-      return fetch(event.request)
+
+  const url = new URL(event.request.url);
+  const isApiRequest = url.pathname.startsWith("/api/");
+  const isStaticAsset = event.request.destination === "image" ||
+    event.request.destination === "font" ||
+    event.request.destination === "style" ||
+    event.request.destination === "script";
+
+  if (isApiRequest) {
+    // Para APIs: Network-first, com fallback para cache
+    event.respondWith(
+      fetch(event.request)
         .then((res) => {
-          if (!res || res.status !== 200 || res.type !== "basic") return res;
-          const clone = res.clone();
-          caches
-            .open(CACHE_NAME)
-            .then((cache) => cache.put(event.request, clone));
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
           return res;
         })
-        .catch(() => caches.match("/ecosol-meta.png"));
-    })
-  );
+        .catch(() => caches.match(event.request) || caches.match("/ecosol-meta.png"))
+    );
+  } else {
+    // Para assets estáticos: Cache-first
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        if (response) return response;
+        return fetch(event.request)
+          .then((res) => {
+            if (!res || res.status !== 200 || res.type !== "basic") return res;
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            return res;
+          })
+          .catch(() => caches.match("/ecosol-meta.png"));
+      })
+    );
+  }
 });

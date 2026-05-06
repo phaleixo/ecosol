@@ -25,7 +25,11 @@ export async function GET() {
       }
     });
 
-    return NextResponse.json(trashed);
+    const response = NextResponse.json(trashed);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Erro ao carregar limbo" }, { status: 500 });

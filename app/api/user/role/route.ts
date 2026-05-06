@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const email = searchParams.get("email");
 
   // Se não houver e-mail, não podemos assumir nada além do padrão básico
-  if (!email) return NextResponse.json({ role: "USER" });
+  if (!email) {
+    const response = NextResponse.json({ role: "USER" });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
+  }
 
   try {
     // 1. Tenta buscar a role no banco
@@ -29,15 +37,27 @@ export async function GET(request: Request) {
         },
         select: { role: true }
       });
-      return NextResponse.json({ role: newUser.role });
+      const response = NextResponse.json({ role: newUser.role });
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      response.headers.set('Expires', '0');
+      return response;
     }
 
     // 3. Retorna a role encontrada (ADMIN ou USER)
-    return NextResponse.json({ role: user.role });
-    
+    const response = NextResponse.json({ role: user.role });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
+
   } catch (error) {
     console.error("Erro crítico na API de Role:", error);
     // Fallback de segurança para não travar o login do usuário
-    return NextResponse.json({ role: "USER" }, { status: 200 });
+    const response = NextResponse.json({ role: "USER" }, { status: 200 });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   }
 }

@@ -14,7 +14,11 @@ export async function GET() {
       orderBy: { createdAt: "desc" },
     });
 
-    return NextResponse.json(pendingServices);
+    const response = NextResponse.json(pendingServices);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Erro na carga de pendentes" }, { status: 500 });

@@ -111,6 +111,15 @@ export default function SubmitPage() {
     e.preventDefault();
     if (!userEmail) return;
 
+    if (!form.category.trim()) {
+      Toast.fire({
+        icon: "error",
+        title: "Campo obrigatório",
+        text: "Selecione uma categoria.",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     showLoading("Sincronizando...", "Enviando seu negócio para análise da curadoria.");
@@ -179,10 +188,10 @@ export default function SubmitPage() {
         {/* HEADER DA PÁGINA: ICONBOX PADRONIZADO CENTRALIZADO */}
         <section className="w-full flex flex-col items-center mb-12 gap-5 text-center">
           <div className="p-4 bg-primary/10 rounded-3xl text-primary shadow-inner">
-            <Rocket size={32} />
+            <Rocket size={28} />
           </div>
           <div>
-            <h2 className="text-3xl font-black tracking-tighter text-foreground uppercase leading-none">
+            <h2 className="text-xl font-black tracking-tighter text-foreground uppercase leading-none">
               Novo Negócio
             </h2>
             <p className="text-muted-foreground font-medium mt-1">
@@ -193,7 +202,7 @@ export default function SubmitPage() {
 
         {/* CARD CENTRALIZADO */}
         <div className="w-full max-w-3xl">
-          <form onSubmit={submit} className="bg-card p-8 md:p-12 rounded-[2.5rem] shadow-xl border border-border animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
+          <form onSubmit={submit} className="bg-card p-8 md:p-12 rounded-xl shadow-xl border border-border animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8">
             <div className="space-y-3">
               <label className="text-[11px] font-black uppercase tracking-[0.2em] text-muted-foreground/60 ml-1">
                 Logo ou Foto do Negócio
@@ -211,20 +220,23 @@ export default function SubmitPage() {
               {!imagePreview ? (
                 <label
                   htmlFor="image-upload"
-                  className="group flex flex-col items-center justify-center w-full h-44 border-2 border-dashed border-border rounded-[2.5rem] cursor-pointer bg-muted/20 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300"
+                  className="group flex flex-col items-center justify-center w-full aspect-square border-2 border-dashed border-border rounded-xl cursor-pointer bg-muted/20 hover:bg-primary/5 hover:border-primary/50 transition-all duration-300"
                 >
                   <UploadCloud className="w-10 h-10 text-muted-foreground group-hover:text-primary transition-all duration-300" />
                   <p className="mt-4 text-sm text-muted-foreground group-hover:text-primary font-bold">
                     Carregar imagem
                   </p>
+                  <p className="mt-4 text-sm text-muted-foreground group-hover:text-primary font-bold text-center">
+                    Para melhor visualização, prefira imagens quadradas e com boa resolução (mínimo 500x500px).
+                  </p>
                 </label>
               ) : (
-                <div className="relative w-full h-64 rounded-[2.5rem] overflow-hidden border-4 border-card shadow-2xl group">
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden border-4 border-card shadow-2xl group bg-muted/10">
                   <Image
                     src={imagePreview}
                     alt="Preview"
                     fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                    className="object-contain transition-transform duration-700 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-background/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4 backdrop-blur-sm">
                     <label
@@ -255,7 +267,7 @@ export default function SubmitPage() {
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   disabled={isSubmitting}
-                  className="h-14 rounded-2xl bg-muted/30 focus:bg-background border-border text-lg font-bold"
+                  className="h-14 rounded-xl bg-muted/30 focus:bg-background border-border text-sm font-bold"
                   placeholder="Nome comercial"
                 />
               </div>
@@ -272,7 +284,7 @@ export default function SubmitPage() {
                       aria-expanded={open}
                       disabled={isSubmitting}
                       className={cn(
-                        "h-14 justify-between rounded-2xl bg-muted/30 border-border text-lg font-bold hover:bg-muted/40 transition-all",
+                        "h-14 justify-between rounded-xl bg-muted/30 border-border text-sm font-bold hover:bg-muted/40 transition-all",
                         !form.category && "text-muted-foreground"
                       )}
                     >
@@ -285,10 +297,10 @@ export default function SubmitPage() {
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent
-                    className="w-full p-0 rounded-4xl border-border shadow-2xl"
+                    className="w-full p-0 rounded-xl border-border shadow-2xl"
                     align="start"
                   >
-                    <Command className="rounded-4xl">
+                    <Command className="rounded-xl">
                       <CommandInput
                         placeholder="Digite para buscar..."
                         className="h-12"
@@ -332,7 +344,7 @@ export default function SubmitPage() {
                 Descrição dos Serviços
               </label>
               <textarea
-                className="w-full min-h-40 rounded-4xl border border-border bg-muted/30 p-6 text-base font-medium text-foreground placeholder:text-muted-foreground/40 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none shadow-inner"
+                className="w-full min-h-40 rounded-xl border border-border bg-muted/30 p-6 text-base font-medium text-foreground placeholder:text-muted-foreground/40 focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all resize-none shadow-inner"
                 required
                 disabled={isSubmitting}
                 placeholder="Descreva o que seu negócio oferece..."
@@ -354,7 +366,7 @@ export default function SubmitPage() {
                   disabled={isSubmitting}
                   value={form.whatsapp}
                   onChange={handlePhoneChange}
-                  className="h-14 rounded-2xl bg-muted/30 border-border font-bold"
+                  className="h-14 rounded-xl bg-muted/30 border-border font-bold"
                 />
               </div>
               <div className="space-y-2">
@@ -368,7 +380,7 @@ export default function SubmitPage() {
                   onChange={(e) =>
                     setForm({ ...form, instagram: e.target.value })
                   }
-                  className="h-14 rounded-2xl bg-muted/30 border-border font-bold"
+                  className="h-14 rounded-xl bg-muted/30 border-border font-bold"
                 />
               </div>
               <div className="space-y-2">
@@ -380,7 +392,7 @@ export default function SubmitPage() {
                   disabled={isSubmitting}
                   value={form.tiktok}
                   onChange={(e) => setForm({ ...form, tiktok: e.target.value })}
-                  className="h-14 rounded-2xl bg-muted/30 border-border font-bold"
+                  className="h-14 rounded-xl bg-muted/30 border-border font-bold"
                 />
               </div>
               <div className="space-y-2">
@@ -393,7 +405,7 @@ export default function SubmitPage() {
                   disabled={isSubmitting}
                   value={form.site}
                   onChange={(e) => setForm({ ...form, site: e.target.value })}
-                  className="h-14 rounded-2xl bg-muted/30 border-border font-bold"
+                  className="h-14 rounded-xl bg-muted/30 border-border font-bold"
                 />
               </div>
             </div>
@@ -401,7 +413,7 @@ export default function SubmitPage() {
             <Button
               type="submit"
               disabled={isSubmitting || !userEmail}
-              className="w-full mt-6 h-16 rounded-4xl font-black text-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
+              className="w-full mt-6 h-16 rounded-2xl font-black text-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]"
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-3">

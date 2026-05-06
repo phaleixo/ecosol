@@ -116,20 +116,13 @@ export default function WhatPage() {
               <div className="pt-4 flex gap-3">
                 <Link href="/signup">
                   <Button
-                    variant="ghost"
+                    variant="secondary"
                     className="font-black uppercase text-[10px] tracking-widest"
                   >
                     Criar Conta
                   </Button>
                 </Link>
-                <Link href="/submit">
-                  <Button
-                    variant="secondary"
-                    className="font-black uppercase text-[10px] tracking-widest"
-                  >
-                    Publicar Serviço
-                  </Button>
-                </Link>
+                
               </div>
             </div>
           </section>

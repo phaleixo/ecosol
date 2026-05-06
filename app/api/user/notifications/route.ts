@@ -14,7 +14,13 @@ export async function GET(request: Request) {
     });
 
     // Visão de Engenharia: Retorna vazio em vez de erro para novos usuários
-    if (!user) return NextResponse.json([]);
+    if (!user) {
+      const response = NextResponse.json([]);
+      response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      response.headers.set('Pragma', 'no-cache');
+      response.headers.set('Expires', '0');
+      return response;
+    }
 
     const notifications = await prisma.notification.findMany({
       where: { userId: user.id },
@@ -22,7 +28,11 @@ export async function GET(request: Request) {
       take: 10,
     });
 
-    return NextResponse.json(notifications);
+    const response = NextResponse.json(notifications);
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error("Erro API Notifications:", error);
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });

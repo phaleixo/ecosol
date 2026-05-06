@@ -14,7 +14,11 @@ export async function GET(request: Request) {
       select: { name: true, phone: true, bio: true } // Selecionamos apenas o necessário
     });
 
-    return NextResponse.json(user || { name: "", phone: "", bio: "" });
+    const response = NextResponse.json(user || { name: "", phone: "", bio: "" });
+    response.headers.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    response.headers.set('Pragma', 'no-cache');
+    response.headers.set('Expires', '0');
+    return response;
   } catch (error) {
     console.error(error);
     return NextResponse.json({ error: "Erro ao buscar perfil" }, { status: 500 });
