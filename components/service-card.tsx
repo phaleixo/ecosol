@@ -174,6 +174,7 @@ export default function ServiceCard({
                   email: service.email ?? undefined,
                   site: service.site ?? undefined,
                 }}
+                providerEmail={service.email ?? undefined}
               />
             </div>
           </CardFooter>

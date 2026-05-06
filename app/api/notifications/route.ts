@@ -6,8 +6,8 @@ export async function POST(request: Request) {
     const { providerEmail } = await request.json();
 
     // 1. Primeiro buscamos o ID do usuário pelo e-mail
-    const user = await prisma.user.findUnique({ 
-      where: { email: providerEmail } 
+    const user = await prisma.user.findUnique({
+      where: { email: providerEmail }
     });
 
     if (!user) {
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const notification = await prisma.notification.create({
       data: {
         userId: user.id, // ID vindo do banco
-        message: "Alguém clicou no seu WhatsApp! Fique atento.",
+        message: "Clicaram no seu WhatsApp. Você deve receber uma mensagem em breve.",
       },
     });
 

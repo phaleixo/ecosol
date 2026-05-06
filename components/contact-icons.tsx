@@ -11,6 +11,7 @@ interface ContactIconsProps {
     email?: string;
     site?: string;
   };
+  providerEmail?: string;
   skeleton?: boolean;
 }
 
@@ -228,11 +229,13 @@ function ContactLink({
   children,
   title,
   skeleton = false,
+  onWhatsAppClick,
 }: {
   href?: string;
   children: React.ReactNode;
   title: string;
   skeleton?: boolean;
+  onWhatsAppClick?: () => void;
 }) {
   if (skeleton || !href) {
     return (
@@ -246,6 +249,11 @@ function ContactLink({
     );
   }
 
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.stopPropagation();
+    onWhatsAppClick?.();
+  };
+
   return (
     <a
       href={href}
@@ -253,7 +261,7 @@ function ContactLink({
       rel="noreferrer noopener"
       title={title}
       className="inline-flex items-center justify-center h-10 w-10 rounded-xl bg-muted border border-border hover:bg-primary/10 hover:border-primary/30 transition-all duration-200 active:scale-90"
-      onClick={(e) => e.stopPropagation()}
+      onClick={handleClick}
     >
       {children}
     </a>
@@ -262,6 +270,7 @@ function ContactLink({
 
 export default function ContactIcons({
   contacts,
+  providerEmail,
   skeleton = false,
 }: ContactIconsProps) {
   if (!contacts && !skeleton) return null;
@@ -272,6 +281,52 @@ export default function ContactIcons({
       cleaned = `55${cleaned}`;
     }
     return `https://wa.me/${cleaned}`;
+  };
+
+  const notifyWhatsAppClick = async () => {
+    if (!providerEmail) return;
+
+    const payload = JSON.stringify({ providerEmail });
+
+    // 1. Enviar notificação ao servidor (em banco de dados)
+    if (navigator.sendBeacon) {
+      navigator.sendBeacon(
+        "/api/notifications",
+        new Blob([payload], { type: "application/json" }),
+      );
+    } else {
+      void fetch("/api/notifications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+        keepalive: true,
+      });
+    }
+
+    // 2. Disparar notificação nativa do PWA (Android/iOS)
+    try {
+      if ("serviceWorker" in navigator && "Notification" in window) {
+        // Pedir permissão se necessário
+        if (Notification.permission === "default") {
+          await Notification.requestPermission();
+        }
+
+        // Se permissão foi concedida, disparar notificação
+        if (Notification.permission === "granted" && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then((registration) => {
+            registration.showNotification("Novo interesse! 🎯", {
+              badge: "/icons/icon-192.png",
+              icon: "/icons/icon-192.png",
+              tag: "whatsapp-notification",
+              requireInteraction: false,
+              body: "Alguém clicou no seu WhatsApp e deve enviar uma mensagem em breve.",
+            });
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao disparar notificação nativa:", error);
+    }
   };
 
   const contactTypes = [
@@ -336,6 +391,9 @@ export default function ContactIcons({
           href={contact.href}
           title={contact.title}
           skeleton={skeleton}
+          onWhatsAppClick={
+            contact.key === "whatsapp" ? notifyWhatsAppClick : undefined
+          }
         >
           {contact.icon}
         </ContactLink>

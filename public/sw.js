@@ -1,4 +1,4 @@
-const CACHE_NAME = "ecosol-static-v1";
+const CACHE_NAME = "ecosol-static-v2";
 const FILES_TO_CACHE = ["/", "/ecosol-meta.png", "/manifest.json"];
 
 // Permite que o cliente solicite que o SW pule para 'activated'
@@ -7,6 +7,29 @@ self.addEventListener("message", (event) => {
   if (event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
   }
+});
+
+// Ouve cliques em notificações push
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      for (let i = 0; i < clientList.length; i++) {
+        const client = clientList[i];
+        if (client.url === "/" && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow("/");
+      }
+    })
+  );
+});
+
+// Fecha notificação se for descartada
+self.addEventListener("notificationclose", (event) => {
+  console.log("Notificação fechada:", event.notification.tag);
 });
 
 self.addEventListener("install", (event) => {
@@ -34,10 +57,7 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(event.request.url);
   const isApiRequest = url.pathname.startsWith("/api/");
-  const isStaticAsset = event.request.destination === "image" ||
-    event.request.destination === "font" ||
-    event.request.destination === "style" ||
-    event.request.destination === "script";
+  const isNavigationRequest = event.request.mode === "navigate" || event.request.destination === "document";
 
   if (isApiRequest) {
     // Para APIs: Network-first, com fallback para cache
@@ -51,6 +71,19 @@ self.addEventListener("fetch", (event) => {
           return res;
         })
         .catch(() => caches.match(event.request) || caches.match("/ecosol-meta.png"))
+    );
+  } else if (isNavigationRequest) {
+    // Para navegação: Network-first para não prender HTML antigo no cache
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+          }
+          return res;
+        })
+        .catch(() => caches.match(event.request) || caches.match("/"))
     );
   } else {
     // Para assets estáticos: Cache-first

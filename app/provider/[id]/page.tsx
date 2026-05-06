@@ -257,6 +257,7 @@ export default async function ProviderPage({
                     email: service.email ?? undefined,
                     site: service.site ?? undefined,
                   }}
+                  providerEmail={service.email ?? undefined}
                 />
               </div>
             </div>

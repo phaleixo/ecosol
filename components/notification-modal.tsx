@@ -135,7 +135,7 @@ export default function NotificationModal({
                     {n.message}
                   </p>
                   <span className="text-[9px] text-muted-foreground mt-3 block font-black uppercase tracking-widest">
-                    {new Date(n.createdAt).toLocaleDateString('pt-BR')}
+                    {new Date(n.createdAt).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' })}
                   </span>
                 </div>
 
