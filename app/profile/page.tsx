@@ -109,11 +109,11 @@ export default async function ProfilePage() {
   ]);
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 pb-20">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-300 pb-12 md:pb-20">
       <Header />
-      <main className="mx-auto max-w-6xl p-6 py-12">
+      <main className="mx-auto max-w-6xl px-4 md:p-6 py-8 md:py-12">
         {/* BARRA DE NAVEGAÇÃO E CONTROLES SUPERIOR */}
-        <div className="flex justify-between items-center mb-10">
+        <div className="flex justify-between items-center mb-6 md:mb-10">
           <Link 
             href="/" 
             className="group inline-flex items-center gap-2 text-primary text-[10px] font-black uppercase tracking-[0.2em] hover:opacity-80 transition-all bg-primary/5 px-4 py-2.5 rounded-xl border border-primary/10"
@@ -158,7 +158,7 @@ export default async function ProfilePage() {
         </div>
 
         {/* HEADER DA PÁGINA: IDENTIDADE (DESKTOP) */}
-        <section className="hidden md:flex items-center mb-12 gap-6">
+        <section className="hidden md:flex items-center mb-10 gap-6">
           <div className="p-4 bg-primary/10 rounded-3xl text-primary shadow-inner">
             <UserCircle size={32} />
           </div>
@@ -169,7 +169,7 @@ export default async function ProfilePage() {
         </section>
 
         {/* HEADER DA PÁGINA: IDENTIDADE (MOBILE) */}
-        <section className="md:hidden flex flex-col items-start mb-12 gap-6">
+        <section className="md:hidden flex flex-col items-start mb-8 gap-4">
           <div className="flex items-center gap-5">
             <div className="p-4 bg-primary/10 rounded-3xl text-primary shadow-inner">
               <UserCircle size={32} />
@@ -181,10 +181,10 @@ export default async function ProfilePage() {
           </div>
         </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-12">
           {/* INFO CARD */}
-          <div className="lg:col-span-2 bg-card p-8 md:p-10 rounded-[2.5rem] shadow-md border border-border flex flex-col justify-center">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8">
+          <div className="lg:col-span-2 bg-card p-5 md:p-10 rounded-2xl md:rounded-[2.5rem] shadow-md border border-border flex flex-col justify-center">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-8">
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-muted-foreground/50 uppercase tracking-[0.2em]">
                   Nome cadastrado
@@ -205,7 +205,7 @@ export default async function ProfilePage() {
           </div>
 
           {/* VISUALIZAÇÕES CARD */}
-          <div className="bg-primary p-8 md:p-10 rounded-[2.5rem] shadow-2xl flex flex-col items-center justify-center text-center relative overflow-hidden group">
+          <div className="bg-primary p-5 md:p-10 rounded-2xl md:rounded-[2.5rem] shadow-2xl flex flex-col items-center justify-center text-center relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-125 transition-transform duration-500">
               <Eye className="w-20 h-20 md:w-24 md:h-24 text-primary-foreground" />
             </div>
@@ -219,8 +219,8 @@ export default async function ProfilePage() {
         </div>
 
         {/* NOTIFICAÇÕES */}
-        <section className="bg-card rounded-[2.5rem] shadow-md border border-border overflow-hidden">
-          <div className="px-6 md:px-10 py-6 md:py-8 border-b border-border flex flex-col sm:flex-row justify-between items-center gap-4 bg-muted/20">
+        <section className="bg-card rounded-2xl md:rounded-[2.5rem] shadow-md border border-border overflow-hidden">
+          <div className="px-4 md:px-10 py-4 md:py-8 border-b border-border flex flex-col sm:flex-row justify-between items-center gap-3 md:gap-4 bg-muted/20">
             <div className="flex items-center gap-4">
               <div className="p-3 bg-primary/10 rounded-2xl text-primary">
                 <Bell className="w-5 h-5 md:w-6 md:h-6" />
@@ -241,9 +241,9 @@ export default async function ProfilePage() {
             />
           </div>
 
-          <div className="p-4 md:p-10 space-y-4 bg-card">
+          <div className="p-3 md:p-10 space-y-3 md:space-y-4 bg-card">
             {dbUser.notifications.length === 0 ? (
-              <div className="py-12 md:py-16 text-center">
+              <div className="py-8 md:py-16 text-center">
                 <MessageSquare className="w-10 h-10 md:w-12 md:h-12 text-muted-foreground/20 mx-auto mb-4" />
                 <p className="text-muted-foreground font-bold italic text-sm">
                   Nenhuma notificação por enquanto.
@@ -254,7 +254,7 @@ export default async function ProfilePage() {
               dbUser.notifications.map((n: any) => (
                 <div
                   key={String(n.id)}
-                  className={`group p-4 md:p-6 rounded-2xl md:rounded-3xl border transition-all duration-300 ${
+                  className={`group p-3 md:p-6 rounded-xl md:rounded-3xl border transition-all duration-300 ${
                     n.read
                       ? "bg-muted/10 border-border opacity-50"
                       : "bg-primary/5 border-primary/20 shadow-sm"

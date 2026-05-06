@@ -51,6 +51,7 @@ export default function Header() {
   const menuRef = React.useRef<HTMLDivElement>(null);
 
   // 1. HIDRATAÇÃO
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   React.useEffect(() => setMounted(true), []);
 
   // 2. FECHAMENTO DE MENU (Click Outside)
@@ -260,7 +261,7 @@ export default function Header() {
                 >
                   <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
                   {hasUnread && (
-                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-primary rounded-full border-2 border-background animate-pulse"></span>
+                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-destructive rounded-full border-2 border-background animate-pulse"></span>
                   )}
                 </button>
 
@@ -431,7 +432,7 @@ export default function Header() {
               >
                 <Bell className="h-5 w-5" />
                 {hasUnread && (
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full border border-background animate-pulse"></span>
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-destructive rounded-full border border-background animate-pulse"></span>
                 )}
                 <span className="text-[10px] mt-0.5">Alertas</span>
               </button>

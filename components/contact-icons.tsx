@@ -304,12 +304,12 @@ export default function ContactIcons({
       });
     }
 
-    // 2. Disparar notificação nativa do PWA APENAS se o usuário é o proprietário
+    // 2. Disparar notificação nativa do PWA APENAS para o proprietário se estiver autenticado
     try {
-      // ✅ VERIFICAÇÃO DE SEGURANÇA: Apenas o proprietário recebe notificação PWA
+      // Verifica o usuário atual via Supabase
       const { data: { user }, error } = await supabase.auth.getUser();
-      
-      // Só dispara notificação PWA se o usuário autenticado é o proprietário
+
+      // Apenas o usuário proprietário (autenticado) recebe a notificação PWA
       if (!error && user && user.email?.toLowerCase() === providerEmail.toLowerCase()) {
         if ("serviceWorker" in navigator && "Notification" in window) {
           // Pedir permissão se necessário
