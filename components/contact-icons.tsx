@@ -2,6 +2,7 @@
 "use client";
 
 import * as React from "react";
+import { supabase } from "@/lib/supabase";
 
 interface ContactIconsProps {
   contacts?: {
@@ -303,25 +304,31 @@ export default function ContactIcons({
       });
     }
 
-    // 2. Disparar notificação nativa do PWA (Android/iOS)
+    // 2. Disparar notificação nativa do PWA APENAS se o usuário é o proprietário
     try {
-      if ("serviceWorker" in navigator && "Notification" in window) {
-        // Pedir permissão se necessário
-        if (Notification.permission === "default") {
-          await Notification.requestPermission();
-        }
+      // ✅ VERIFICAÇÃO DE SEGURANÇA: Apenas o proprietário recebe notificação PWA
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      // Só dispara notificação PWA se o usuário autenticado é o proprietário
+      if (!error && user && user.email?.toLowerCase() === providerEmail.toLowerCase()) {
+        if ("serviceWorker" in navigator && "Notification" in window) {
+          // Pedir permissão se necessário
+          if (Notification.permission === "default") {
+            await Notification.requestPermission();
+          }
 
-        // Se permissão foi concedida, disparar notificação
-        if (Notification.permission === "granted" && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.ready.then((registration) => {
-            registration.showNotification("Novo interesse! 🎯", {
-              badge: "/icons/icon-192.png",
-              icon: "/icons/icon-192.png",
-              tag: "whatsapp-notification",
-              requireInteraction: false,
-              body: "Alguém clicou no seu WhatsApp e deve enviar uma mensagem em breve.",
+          // Se permissão foi concedida, disparar notificação
+          if (Notification.permission === "granted" && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then((registration) => {
+              registration.showNotification("Novo interesse! 🎯", {
+                badge: "/icons/icon-192.png",
+                icon: "/icons/icon-192.png",
+                tag: "whatsapp-notification",
+                requireInteraction: false,
+                body: "Alguém clicou no seu WhatsApp e deve enviar uma mensagem em breve.",
+              });
             });
-          });
+          }
         }
       }
     } catch (error) {
