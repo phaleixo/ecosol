@@ -136,13 +136,6 @@ export default async function ProfilePage() {
               </Button>
             </Link>
 
-            {service && (
-              <ProviderShareButton
-                providerId={service.id}
-                name={service.name}
-                category={service.category}
-              />
-            )}
             
             <div className="h-5 w-px bg-border/50 mx-0.5" />
             

@@ -2,7 +2,6 @@
 "use client";
 
 import * as React from "react";
-import { supabase } from "@/lib/supabase";
 
 interface ContactIconsProps {
   contacts?: {
@@ -289,7 +288,7 @@ export default function ContactIcons({
 
     const payload = JSON.stringify({ providerEmail });
 
-    // 1. Enviar notificação ao servidor (em banco de dados)
+    // Enviar notificação ao servidor (em banco de dados)
     if (navigator.sendBeacon) {
       navigator.sendBeacon(
         "/api/notifications",
@@ -302,37 +301,6 @@ export default function ContactIcons({
         body: payload,
         keepalive: true,
       });
-    }
-
-    // 2. Disparar notificação nativa do PWA APENAS para o proprietário se estiver autenticado
-    try {
-      // Verifica o usuário atual via Supabase
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      // Apenas o usuário proprietário (autenticado) recebe a notificação PWA
-      if (!error && user && user.email?.toLowerCase() === providerEmail.toLowerCase()) {
-        if ("serviceWorker" in navigator && "Notification" in window) {
-          // Pedir permissão se necessário
-          if (Notification.permission === "default") {
-            await Notification.requestPermission();
-          }
-
-          // Se permissão foi concedida, disparar notificação
-          if (Notification.permission === "granted" && navigator.serviceWorker.controller) {
-            navigator.serviceWorker.ready.then((registration) => {
-              registration.showNotification("Novo interesse! 🎯", {
-                badge: "/icons/icon-192.png",
-                icon: "/icons/icon-192.png",
-                tag: "whatsapp-notification",
-                requireInteraction: false,
-                body: "Alguém clicou no seu WhatsApp e deve enviar uma mensagem em breve.",
-              });
-            });
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Erro ao disparar notificação nativa:", error);
     }
   };
 

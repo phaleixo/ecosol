@@ -9,29 +9,6 @@ self.addEventListener("message", (event) => {
   }
 });
 
-// Ouve cliques em notificações push
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      for (let i = 0; i < clientList.length; i++) {
-        const client = clientList[i];
-        if (client.url === "/" && "focus" in client) {
-          return client.focus();
-        }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow("/");
-      }
-    })
-  );
-});
-
-// Fecha notificação se for descartada
-self.addEventListener("notificationclose", (event) => {
-  console.log("Notificação fechada:", event.notification.tag);
-});
-
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
