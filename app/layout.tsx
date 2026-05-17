@@ -6,6 +6,7 @@ import "./globals.css";
 import "./globals-sw.css";
 import RegisterSW from "@/components/register-sw";
 import PWAInstall from "@/components/pwa-install";
+import CookieBanner from "@/components/cookie-banner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -120,7 +121,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: `(function(){
   function rgbToHex(rgb){
-    var m = rgb && rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+    var m = rgb && rgb.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)\)/i);
     if(!m) return null;
     return '#'+[1,2,3].map(function(i){return parseInt(m[i]).toString(16).padStart(2,'0')}).join('');
   }
@@ -184,6 +185,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
             <Footer />
           </div>
+          <CookieBanner />
         </ThemeProvider>
         <RegisterSW />
         <PWAInstall />
